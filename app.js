@@ -583,7 +583,10 @@ async function enrichFromSpotify(album) {
       url = `/.netlify/functions/spotify?title=${encodeURIComponent(album.title)}&artist=${encodeURIComponent(album.artist)}&year=${album.year}`;
     }
 
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!res.ok) return;
 
     const result = await res.json();
