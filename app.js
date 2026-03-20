@@ -597,8 +597,8 @@ async function enrichFromSpotify(album) {
     } catch (_) {}
 
     patchAlbumUI(result.album);
-  } catch (_) {
-    // 실패 시 현재 화면 유지 — 사용자에게 오류 노출 없음
+  } catch (err) {
+    console.error('[Spotify 보강 실패]', err);
   }
 }
 
