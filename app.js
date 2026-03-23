@@ -83,15 +83,31 @@ function renderHeader(opts = {}) {
   `;
 }
 
+// Spotify 캐시에서 커버 URL 읽기 (동기)
+function getSpotifyCoverFromCache(album) {
+  try {
+    const key = 'archive_spotify_' + (album.spotifyAlbumId || album.id);
+    const cached = localStorage.getItem(key);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Date.now() - parsed.cachedAt < 86400000) return parsed.data.imageUrl || null;
+    }
+  } catch (_) {}
+  return null;
+}
+
 // 앨범 카드 HTML 렌더 (공통)
 function renderAlbumCard(a) {
   const artistId = artistNameToId(a.artist);
+  const cachedCover = !a.coverImage ? getSpotifyCoverFromCache(a) : null;
+  const imgSrc = a.coverImage || cachedCover;
+  const needsLazyLoad = !imgSrc && (a.spotifyAlbumId || a.tracks.length === 0);
   return `
-    <div class="album-card" onclick="navigate('${albumUrl(a.id)}')">
+    <div class="album-card" data-card-id="${a.id}" onclick="navigate('${albumUrl(a.id)}')">
       <div class="album-card-art">
         <div class="album-card-art-inner" style="background:${a.coverGradient}">
-          ${a.coverImage
-      ? `<img src="${a.coverImage}" alt="${a.title}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">`
+          ${imgSrc
+      ? `<img src="${imgSrc}" alt="${a.title}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">`
       : `<span>${a.title.split(' ').slice(0, 2).join(' ')}</span>`
     }
           <div class="album-card-play">
@@ -107,27 +123,190 @@ function renderAlbumCard(a) {
     </div>`;
 }
 
+// 카드 목록에서 커버 없는 앨범 Spotify 커버 비동기 보강
+async function enrichCardCovers(albums) {
+  for (const a of albums) {
+    if (a.coverImage) continue;
+    const needsEnrich = a.spotifyAlbumId || a.tracks.length === 0;
+    if (!needsEnrich) continue;
+
+    const cached = getSpotifyCoverFromCache(a);
+    if (cached) {
+      _applyCardCover(a.id, cached);
+      continue;
+    }
+
+    try {
+      const albumId = a.spotifyAlbumId;
+      const url = albumId
+        ? `/.netlify/functions/spotify?id=${encodeURIComponent(albumId)}`
+        : `/.netlify/functions/spotify?title=${encodeURIComponent(a.title)}&artist=${encodeURIComponent(a.artist)}&year=${a.year}`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (!res.ok) continue;
+      const result = await res.json();
+      if (!result.ok || !result.album.imageUrl) continue;
+      try {
+        const cacheKey = 'archive_spotify_' + (albumId || a.id);
+        localStorage.setItem(cacheKey, JSON.stringify({ cachedAt: Date.now(), data: result.album }));
+      } catch (_) {}
+      _applyCardCover(a.id, result.album.imageUrl);
+    } catch (_) {}
+  }
+}
+
+function _applyCardCover(albumId, imageUrl) {
+  // 앨범 카드 (장르/연도/아티스트 페이지)
+  const card = document.querySelector(`[data-card-id="${albumId}"] .album-card-art-inner`);
+  if (card) {
+    const span = card.querySelector('span');
+    if (span) span.remove();
+    if (!card.querySelector('img')) {
+      const img = document.createElement('img');
+      img.src = imageUrl;
+      img.alt = '';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;';
+      card.insertBefore(img, card.firstChild);
+    }
+  }
+
+  // 앨범 로우 (인덱스 페이지)
+  const row = document.querySelector(`.album-row[onclick*="${albumId}"] .album-row-cover`);
+  if (row && !row.querySelector('img')) {
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.alt = '';
+    row.appendChild(img);
+  }
+}
+
 // ── INDEX PAGE ──────────────────────────
+let _activeGenreId = null;
+
 function initIndex() {
   renderHeader();
+
   const grid = document.getElementById('genre-grid');
-  if (!grid) return;
-  grid.innerHTML = GENRES.map(g => {
+  const content = document.getElementById('index-content');
+  if (!grid || !content) return;
+
+  // 소개 카드 + 장르 카드
+  const introCard = `
+    <div class="genre-card index-intro-card" onclick="showArchiveIntro()">
+      <div class="card-bg" style="background:linear-gradient(135deg,#0a0a0a,#1c1c1c)"></div>
+      <div class="card-overlay">
+        <span class="card-name" style="color:#666">ARCHIVE.</span>
+        <span class="card-count">사이트 소개</span>
+      </div>
+    </div>`;
+
+  grid.innerHTML = introCard + GENRES.map(g => {
     const count = countByGenre(g.id);
     return `
-      <div class="genre-card" onclick="navigate('${genreUrl(g.id)}')" style="--card-color:${g.color}">
+      <div class="genre-card" data-genre="${g.id}" onclick="selectGenre('${g.id}')" style="--card-color:${g.color}">
         <div class="card-bg" style="background:${g.bg}"></div>
         <div class="card-overlay">
           <span class="card-name" style="color:${g.color}">${g.name}</span>
           <span class="card-count">${count} albums</span>
         </div>
-        <div class="card-arrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M7 17L17 7M7 7h10v10"/>
-          </svg>
-        </div>
       </div>`;
   }).join('');
+
+  // 첫 장르 기본 선택
+  selectGenre(GENRES[0].id);
+}
+
+function showArchiveIntro() {
+  qsa('[data-genre]').forEach(el => el.classList.remove('active'));
+  qsa('.index-intro-card').forEach(el => el.classList.add('active'));
+
+  document.documentElement.style.setProperty('--accent-dynamic', '#888');
+
+  const content = document.getElementById('index-content');
+  if (!content) return;
+
+  const total = ALBUMS.length;
+  const artistCount = [...new Set(ALBUMS.map(a => a.artist))].length;
+  const genreCount = GENRES.length;
+
+  content.innerHTML = `
+    <div class="intro-panel">
+      <div class="intro-header">
+        <div class="intro-logo">ARCHIVE.</div>
+        <div class="intro-tagline">음악을 기억하는 방식</div>
+      </div>
+      <p class="intro-desc">
+        ARCHIVE는 앨범 단위로 음악을 기록하는 아카이브입니다.
+        스트리밍 플랫폼의 알고리즘이 아닌, 장르와 시대의 맥락 속에서
+        앨범을 탐색하고 이해하는 공간을 만들고자 했습니다.
+      </p>
+      <p class="intro-desc">
+        각 앨범 페이지에는 트랙리스트, 참여진, 발매 배경, 시대적 의미가 담겨 있습니다.
+        Hip-Hop부터 Classical까지, 장르의 경계를 넘나들며
+        당신이 아직 만나지 못한 음악을 발견할 수 있습니다.
+      </p>
+      <div class="intro-stats">
+        <div class="intro-stat">
+          <div class="intro-stat-value">${total}</div>
+          <div class="intro-stat-label">Albums</div>
+        </div>
+        <div class="intro-stat">
+          <div class="intro-stat-value">${artistCount}</div>
+          <div class="intro-stat-label">Artists</div>
+        </div>
+        <div class="intro-stat">
+          <div class="intro-stat-value">${genreCount}</div>
+          <div class="intro-stat-label">Genres</div>
+        </div>
+      </div>
+      <div class="intro-note">
+        Spotify API 연동으로 커버 이미지, 트랙리스트, 발매 정보가 자동으로 보강됩니다.
+        앨범을 클릭하면 더 자세한 정보를 확인할 수 있습니다.
+      </div>
+    </div>`;
+}
+
+function selectGenre(genreId) {
+  _activeGenreId = genreId;
+  const genre = getGenreById(genreId);
+  if (!genre) return;
+
+  // 카드 활성 상태
+  qsa('[data-genre]').forEach(el => {
+    el.classList.toggle('active', el.dataset.genre === genreId);
+  });
+
+  document.documentElement.style.setProperty('--accent-dynamic', genre.color);
+
+  const albums = getAlbumsByGenre(genreId);
+  const content = document.getElementById('index-content');
+  if (!content) return;
+
+  content.innerHTML = `
+    <div class="index-genre-header">
+      <span class="index-genre-name" style="color:${genre.color}">${genre.name}</span>
+      <span class="index-genre-total">${albums.length} albums</span>
+    </div>
+    <div class="album-list">
+      ${albums.map(a => {
+        const cachedCover = getSpotifyCoverFromCache(a);
+        const imgSrc = a.coverImage || cachedCover;
+        return `
+          <div class="album-row" onclick="navigate('${albumUrl(a.id)}')">
+            <div class="album-row-cover" style="background:${a.coverGradient}">
+              ${imgSrc ? `<img src="${imgSrc}" alt="${a.title}">` : ''}
+            </div>
+            <div class="album-row-info">
+              <div class="album-row-title">${a.title}</div>
+              <div class="album-row-meta">${a.artist} · ${a.year}</div>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+
+  enrichCardCovers(albums);
 }
 
 // ── GENRE PAGE ──────────────────────────
@@ -174,6 +353,7 @@ function initGenre() {
   }
 
   grid.innerHTML = albums.map(a => renderAlbumCard(a)).join('');
+  enrichCardCovers(albums);
 }
 
 // ── YEAR PAGE ──────────────────────────
@@ -219,6 +399,7 @@ function initYear() {
   }
 
   grid.innerHTML = albums.map(a => renderAlbumCard(a)).join('');
+  enrichCardCovers(albums);
 }
 
 // ── ARTIST PAGE ──────────────────────────
@@ -291,6 +472,7 @@ function initArtist() {
   }
 
   grid.innerHTML = albums.map(a => renderAlbumCard(a)).join('');
+  enrichCardCovers(albums);
 }
 
 // ── ALBUM PAGE ──────────────────────────

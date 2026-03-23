@@ -440,6 +440,7 @@ const ALBUMS = [
     title: "My Beautiful Dark Twisted Fantasy",
     artist: "Kanye West",
     year: 2010,
+    spotifyAlbumId: "20r762YmB5HeofjMCiPMLv",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#1a0000,#4a0010,#8b0000)",
     accentColor: "#cc2200", tracks: [], credits: null, concept: "", era: ""
@@ -450,6 +451,7 @@ const ALBUMS = [
     title: "good kid, m.A.A.d city",
     artist: "Kendrick Lamar",
     year: 2012,
+    spotifyAlbumId: "0Oq3mWfexhsjUh0aNNBB5u",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#0a0a00,#2a2000,#5a4000)",
     accentColor: "#d4a017", tracks: [], credits: null, concept: "", era: ""
@@ -462,6 +464,7 @@ const ALBUMS = [
     title: "channel ORANGE",
     artist: "Frank Ocean",
     year: 2012,
+    spotifyAlbumId: "392p3shh2jkxUxY2VHvlH8",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#1a0800,#7a3000,#ff6600)",
     accentColor: "#ff6600", tracks: [], credits: null, concept: "", era: ""
@@ -472,6 +475,7 @@ const ALBUMS = [
     title: "Ctrl",
     artist: "SZA",
     year: 2017,
+    spotifyAlbumId: "76290XdXVF9rPzGdNRWdCh",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#0a0a0a,#1a1010,#3a2020)",
     accentColor: "#c8a882", tracks: [], credits: null, concept: "", era: ""
@@ -484,6 +488,7 @@ const ALBUMS = [
     title: "1989",
     artist: "Taylor Swift",
     year: 2014,
+    spotifyAlbumId: "5fy0X0JmZRZnVa2UEicIOl",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#0a1520,#1a3a5a,#5a8ab0)",
     accentColor: "#7fb3d3", tracks: [], credits: null, concept: "", era: ""
@@ -494,6 +499,7 @@ const ALBUMS = [
     title: "Future Nostalgia",
     artist: "Dua Lipa",
     year: 2020,
+    spotifyAlbumId: "7fJJK56U9fHixgO0HQkhtI",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#150015,#3a0040,#7a0080)",
     accentColor: "#cc44ff", tracks: [], credits: null, concept: "", era: ""
@@ -506,6 +512,7 @@ const ALBUMS = [
     title: "Abbey Road",
     artist: "The Beatles",
     year: 1969,
+    spotifyAlbumId: "0ETFjACtuP2ADo6LFhL6HN",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#0a0a0a,#1a1a10,#3a3a20)",
     accentColor: "#d4c87a", tracks: [], credits: null, concept: "", era: ""
@@ -516,6 +523,7 @@ const ALBUMS = [
     title: "Nevermind",
     artist: "Nirvana",
     year: 1991,
+    spotifyAlbumId: "2UJcKiJxNryhL050F5Z1Fk",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#000a1a,#001a3a,#003060)",
     accentColor: "#4a90d9", tracks: [], credits: null, concept: "", era: ""
@@ -526,6 +534,7 @@ const ALBUMS = [
     title: "The Dark Side of the Moon",
     artist: "Pink Floyd",
     year: 1973,
+    spotifyAlbumId: "4LH4d3cOWNNsVw41Gqt2kv",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#000000,#0a0010,#1a0030)",
     accentColor: "#9b59b6", tracks: [], credits: null, concept: "", era: ""
@@ -538,6 +547,7 @@ const ALBUMS = [
     title: "A Love Supreme",
     artist: "John Coltrane",
     year: 1965,
+    spotifyAlbumId: "7Eoz7hJvaX1eFkbpQxC5PA",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#0a0800,#1a1400,#3a2a00)",
     accentColor: "#c8a820", tracks: [], credits: null, concept: "", era: ""
@@ -548,6 +558,7 @@ const ALBUMS = [
     title: "Time Out",
     artist: "The Dave Brubeck Quartet",
     year: 1959,
+    spotifyAlbumId: "0nTTEAhCZsbbeplyDMIFuA",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#100a00,#2a1800,#5a3500)",
     accentColor: "#d4883a", tracks: [], credits: null, concept: "", era: ""
@@ -560,6 +571,7 @@ const ALBUMS = [
     title: "Discovery",
     artist: "Daft Punk",
     year: 2001,
+    spotifyAlbumId: "2noRn2Aes5aoNVsU6iWThc",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#001510,#003a28,#006644)",
     accentColor: "#00cc88", tracks: [], credits: null, concept: "", era: ""
@@ -570,6 +582,7 @@ const ALBUMS = [
     title: "In Colour",
     artist: "Jamie xx",
     year: 2015,
+    spotifyAlbumId: "4gaNWHu5Caj3ItkYZ5i6uh",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#000a15,#001a30,#003a5a)",
     accentColor: "#00aaff", tracks: [], credits: null, concept: "", era: ""
@@ -582,6 +595,7 @@ const ALBUMS = [
     title: "New Jeans",
     artist: "NewJeans",
     year: 2022,
+    spotifyAlbumId: "1HMLpmZAnNyl9pxvOnTovV",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#0a1020,#1a2a40,#2a4060)",
     accentColor: "#90caf9", tracks: [], credits: null, concept: "", era: ""
@@ -592,6 +606,7 @@ const ALBUMS = [
     title: "OMG",
     artist: "NewJeans",
     year: 2023,
+    spotifyAlbumId: "45ozep8uHHnj5CCittuyXj",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#100a1a,#2a1a3a,#4a2a6a)",
     accentColor: "#ce93d8", tracks: [], credits: null, concept: "", era: ""
@@ -603,6 +618,7 @@ const ALBUMS = [
     title: "How Sweet",
     artist: "NewJeans",
     year: 2024,
+    spotifyAlbumId: "0EhZEM4RRz0yioTgucDhJq",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#1a1000,#3a2800,#6a4a00)",
     accentColor: "#ffcc70", tracks: [], credits: null, concept: "", era: ""
@@ -613,6 +629,7 @@ const ALBUMS = [
     title: "Supernatural",
     artist: "NewJeans",
     year: 2024,
+    spotifyAlbumId: "0IxlipeDanNHiHDs9tYjpm",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#001a10,#003a28,#006644)",
     accentColor: "#80cbc4", tracks: [], credits: null, concept: "", era: ""
@@ -625,6 +642,7 @@ const ALBUMS = [
     title: "In Rainbows",
     artist: "Radiohead",
     year: 2007,
+    spotifyAlbumId: "5vkqYmiPBYLaalcmjujWxK",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#1a0000,#3a0808,#6a1010)",
     accentColor: "#cc3333", tracks: [], credits: null, concept: "", era: ""
@@ -635,6 +653,7 @@ const ALBUMS = [
     title: "Currents",
     artist: "Tame Impala",
     year: 2015,
+    spotifyAlbumId: "79dL7FLiJFOO0EoehUHQBv",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#000a15,#001530,#003060)",
     accentColor: "#3399ff", tracks: [], credits: null, concept: "", era: ""
@@ -647,6 +666,7 @@ const ALBUMS = [
     title: "Songs in the Key of Life",
     artist: "Stevie Wonder",
     year: 1976,
+    spotifyAlbumId: "6YUCc2RiXcEKS9ibuZxjt0",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#1a0800,#4a2000,#8a4400)",
     accentColor: "#e87820", tracks: [], credits: null, concept: "", era: ""
@@ -659,6 +679,7 @@ const ALBUMS = [
     title: "Goldberg Variations",
     artist: "Glenn Gould",
     year: 1981,
+    spotifyAlbumId: "1aCpHSQE5ghxibsQ5gkBe0",
     releaseDate: "", label: "", duration: "", edition: "",
     coverImage: "", coverGradient: "linear-gradient(160deg,#100e08,#2a2618,#4a4430)",
     accentColor: "#d4c070", tracks: [], credits: null, concept: "", era: ""

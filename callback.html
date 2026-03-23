@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>로그인 중 — MyMusicSave</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .callback-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      gap: 1.5rem;
+    }
+    .callback-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+    }
+    .callback-msg {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .callback-error {
+      color: #e55;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="page-wrapper">
+    <div class="callback-wrap">
+      <div class="callback-title">MYMUSICSAVE</div>
+      <div class="callback-msg" id="callback-msg">Spotify 로그인 처리 중...</div>
+    </div>
+  </main>
+  <script>
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const error = params.get('error');
+      const msgEl = document.getElementById('callback-msg');
+
+      if (error || !code) {
+        msgEl.className = 'callback-error';
+        msgEl.textContent = '로그인이 취소되었거나 오류가 발생했습니다.';
+        setTimeout(() => { window.location.href = '/'; }, 2000);
+        return;
+      }
+
+      try {
+        const redirectUri = window.location.origin + '/callback.html';
+        const res = await fetch(`/.netlify/functions/auth?code=${encodeURIComponent(code)}&redirect_uri=${encodeURIComponent(redirectUri)}`);
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || '토큰 교환 실패');
+
+        // 로컬스토리지에 저장
+        localStorage.setItem('mms_access_token', data.access_token);
+        localStorage.setItem('mms_refresh_token', data.refresh_token);
+        localStorage.setItem('mms_token_expiry', Date.now() + data.expires_in * 1000);
+        localStorage.setItem('mms_user', JSON.stringify(data.user));
+
+        msgEl.textContent = `${data.user.display_name}님, 환영합니다. 대시보드로 이동합니다.`;
+        setTimeout(() => { window.location.href = '/dashboard.html'; }, 1000);
+      } catch (err) {
+        msgEl.className = 'callback-error';
+        msgEl.textContent = '오류: ' + err.message;
+      }
+    })();
+  </script>
+</body>
+</html>
