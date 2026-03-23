@@ -1,0 +1,1186 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Space+Mono&display=swap');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0a0a0a;
+  --bg2: #111111;
+  --bg3: #1a1a1a;
+  --text: #f0f0f0;
+  --text-dim: #888;
+  --text-muted: #555;
+  --border: #2a2a2a;
+  --accent: #ffffff;
+  --radius: 4px;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 2px;
+}
+
+/* ── LINKS ── */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ── SITE HEADER ── */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 40px;
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.15em;
+  color: var(--text);
+}
+
+.site-logo span {
+  color: var(--accent-dynamic, #fff);
+}
+
+.site-nav {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+}
+
+.site-nav a {
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  transition: color var(--transition);
+  cursor: pointer;
+}
+
+.site-nav a:hover {
+  color: var(--text);
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color var(--transition);
+  border: none;
+  background: none;
+}
+
+.back-btn:hover {
+  color: var(--text);
+}
+
+.back-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── PAGE WRAPPER ── */
+.page-wrapper {
+  padding-top: 72px;
+  min-height: 100vh;
+}
+
+/* ════════════════════════════════════════
+   INDEX — HERO + GENRE SECTION
+════════════════════════════════════════ */
+.hero {
+  padding: 80px 40px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 8vw, 7rem);
+  line-height: 0.92;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  text-align: center;
+}
+
+.hero-title span {
+  display: block;
+  color: transparent;
+  -webkit-text-stroke: 1px #444;
+}
+
+.genre-section {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 40px 80px;
+}
+
+.section-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* 좌우 분할 */
+.index-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+/* 장르 카드 그리드 — 3열 고정 */
+.genre-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.genre-card {
+  position: relative;
+  aspect-ratio: 1 / 1.2;
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition);
+  border: 1px solid #1f1f1f;
+}
+
+.genre-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.6);
+}
+
+.genre-card.active {
+  box-shadow: 0 0 0 1px var(--card-color, #888);
+}
+
+.genre-card .card-bg {
+  position: absolute;
+  inset: 0;
+  transition: transform var(--transition);
+}
+
+.genre-card:hover .card-bg {
+  transform: scale(1.05);
+}
+
+.genre-card .card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 60%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+}
+
+.genre-card .card-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.genre-card .card-count {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+}
+
+.index-intro-card {
+  border: 1px dashed #2a2a2a !important;
+}
+
+/* 우측 앨범 패널 */
+.index-album-panel {
+  position: sticky;
+  top: 92px;
+  max-height: calc(100vh - 112px);
+  overflow-y: auto;
+}
+
+.index-album-panel::-webkit-scrollbar { width: 3px; }
+.index-album-panel::-webkit-scrollbar-track { background: transparent; }
+.index-album-panel::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+
+/* 소개 패널 */
+.intro-panel {
+  padding-top: 4px;
+}
+
+.intro-header {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.intro-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.4rem;
+  letter-spacing: 0.12em;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.intro-tagline {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.intro-desc {
+  font-size: 0.85rem;
+  line-height: 1.85;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  word-break: keep-all;
+}
+
+.intro-stats {
+  display: flex;
+  gap: 32px;
+  margin: 28px 0;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.intro-stat-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.intro-stat-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.intro-note {
+  font-size: 0.75rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+  padding: 14px 16px;
+  border-left: 2px solid #2a2a2a;
+  margin-top: 4px;
+}
+
+.index-genre-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 1;
+  padding-top: 2px;
+}
+
+.index-genre-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.index-genre-total {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.album-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.album-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 6px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background var(--transition);
+  border-radius: 2px;
+  margin: 0 -6px;
+}
+
+.album-row:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+.album-row-cover {
+  width: 42px;
+  height: 42px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.album-row-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.album-row-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.album-row-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.album-row-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ════════════════════════════════════════
+   GENRE PAGE — ALBUM LIST
+════════════════════════════════════════ */
+.genre-hero {
+  padding: 60px 40px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--border);
+}
+
+.genre-hero-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.genre-hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 10vw, 8rem);
+  line-height: 0.9;
+  letter-spacing: 0.03em;
+}
+
+.genre-stats {
+  margin-top: 20px;
+  display: flex;
+  gap: 32px;
+}
+
+.genre-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.genre-stat-value {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.4rem;
+  color: var(--text);
+}
+
+.genre-stat-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.album-list-section {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.album-card {
+  cursor: pointer;
+  group: true;
+}
+
+.album-card-art {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 12px;
+  transition: box-shadow var(--transition);
+}
+
+.album-card:hover .album-card-art {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+}
+
+.album-card-art-inner {
+  width: 100%;
+  height: 100%;
+  transition: transform var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.album-card:hover .album-card-art-inner {
+  transform: scale(1.04);
+}
+
+.album-card-art-inner span {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 4rem;
+  color: rgba(255, 255, 255, 0.15);
+  letter-spacing: 0.05em;
+  text-align: center;
+  padding: 16px;
+  line-height: 1;
+}
+
+.album-card-play {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.album-card:hover .album-card-play {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.album-card-play svg {
+  width: 14px;
+  height: 14px;
+  fill: #000;
+  margin-left: 2px;
+}
+
+.album-card-meta {
+  padding: 0 2px;
+}
+
+.album-card-year {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.album-card-year:hover {
+  color: var(--text);
+}
+
+.album-card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.album-card-title:hover {
+  opacity: 0.75;
+}
+
+.album-card-artist {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.album-card-artist:hover {
+  color: var(--text);
+}
+
+/* ════════════════════════════════════════
+   ALBUM DETAIL PAGE — POSTER LAYOUT
+════════════════════════════════════════ */
+.album-poster-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+/* POSTER — inner box */
+.album-poster {
+  position: relative;
+  background: var(--poster-bg, #111);
+  border-radius: 2px;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: calc(100vh - 130px);
+  border: 1px solid #1f1f1f;
+}
+
+.album-poster-deco {
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image: repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(255, 255, 255, 0.04) 80px);
+  pointer-events: none;
+}
+
+/* POSTER TOP */
+.poster-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 32px 40px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.poster-year {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.poster-year:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.poster-edition {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: right;
+}
+
+/* POSTER TITLE */
+.poster-title-block {
+  padding: 16px 40px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.poster-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(4rem, 10vw, 9rem);
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  color: #fff;
+  position: relative;
+}
+
+/* POSTER CENTER — art + content */
+.poster-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  position: relative;
+  z-index: 2;
+  padding: 24px 40px;
+}
+
+.poster-art-col {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-right: 32px;
+}
+
+.poster-art {
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+}
+
+.poster-art-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.poster-art-inner .art-watermark {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 6rem;
+  color: rgba(255, 255, 255, 0.08);
+  letter-spacing: 0.05em;
+  text-align: center;
+  line-height: 1;
+}
+
+.poster-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-left: 8px;
+  justify-content: space-between;
+}
+
+/* TRACK LIST (poster style) */
+.poster-tracks-header {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 10px;
+}
+
+.poster-tracks-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 24px;
+}
+
+.poster-track-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 3px 0;
+  cursor: pointer;
+  transition: background var(--transition);
+  border-radius: 2px;
+}
+
+.poster-track-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.poster-track-no {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem;
+  color: rgba(255, 255, 255, 0.3);
+  min-width: 18px;
+}
+
+.poster-track-title {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.3;
+  flex: 1;
+  transition: color var(--transition);
+}
+
+.poster-track-row:hover .poster-track-title {
+  color: #fff;
+}
+
+.poster-track-feat {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* POSTER BOTTOM RIGHT — artist + info */
+.poster-artist-block {
+  margin-top: auto;
+}
+
+.poster-artist-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 4px;
+}
+
+.poster-artist-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.poster-artist-name:hover {
+  opacity: 0.7;
+}
+
+.poster-release-block {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.poster-release-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.poster-release-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.poster-release-value {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.poster-release-value.link {
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.poster-release-value.link:hover {
+  color: #fff;
+}
+
+/* POSTER BOTTOM BAR */
+.poster-bottom {
+  padding: 20px 40px 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.poster-label-badge {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.poster-duration-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* ── DETAIL TABS ── */
+.detail-tabs-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px 60px;
+}
+
+.tab-nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+
+.tab-btn {
+  padding: 14px 24px;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.tab-btn:hover {
+  color: var(--text);
+}
+
+.tab-btn.active {
+  color: var(--text);
+  border-bottom-color: var(--accent-dynamic, #fff);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* CREDITS TAB */
+.credits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 32px;
+}
+
+.credits-group-title {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.credits-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.credits-list li {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.credits-list li::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.credits-list li:hover {
+  color: var(--text);
+}
+
+/* CONCEPT & ERA TEXT TAB */
+.text-content {
+  max-width: 760px;
+}
+
+.text-content p {
+  font-size: 0.95rem;
+  line-height: 1.85;
+  color: var(--text-dim);
+}
+
+.text-content h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 0.05em;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+/* ── EMPTY / LOADING ── */
+.empty-state {
+  text-align: center;
+  padding: 80px 40px;
+  color: var(--text-muted);
+}
+
+.empty-state h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  font-size: 0.88rem;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .site-header {
+    padding: 16px 20px;
+  }
+
+  .index-split {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .index-album-panel {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .hero,
+  .genre-section,
+  .album-list-section {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .album-poster-wrapper,
+  .detail-tabs-wrapper {
+    padding: 20px;
+  }
+
+  .poster-body {
+    grid-template-columns: 1fr;
+  }
+
+  .poster-art-col {
+    padding-right: 0;
+    justify-content: flex-start;
+  }
+
+  .poster-art {
+    max-width: 300px;
+  }
+
+  .poster-info-col {
+    padding-left: 0;
+    margin-top: 24px;
+  }
+
+  .poster-tracks-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .genre-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .album-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .poster-title {
+    font-size: 3.5rem;
+  }
+
+  .poster-artist-name {
+    font-size: 2rem;
+  }
+
+  .tab-btn {
+    padding: 12px 14px;
+    font-size: 0.68rem;
+  }
+}
+
+/* ════════════════════════════════════════
+   ALBUM SECTION (genre / year / artist 공통)
+════════════════════════════════════════ */
+.album-section {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+/* ════════════════════════════════════════
+   ARTIST PAGE
+════════════════════════════════════════ */
+.artist-hero {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px 40px 40px;
+  border-bottom: 1px solid var(--border);
+}
+
+.artist-hero-inner {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 56px;
+  align-items: flex-start;
+}
+
+.artist-photo-wrap {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--bg3);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+}
+
+.artist-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+.artist-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-top: 8px;
+}
+
+.artist-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 7vw, 7rem);
+  line-height: 0.9;
+  letter-spacing: 0.03em;
+  margin-bottom: 24px;
+  margin-top: 8px;
+}
+
+.artist-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-bottom: 28px;
+}
+
+.artist-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.artist-meta-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.artist-meta-value {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.artist-bio {
+  font-size: 0.92rem;
+  line-height: 1.85;
+  color: var(--text-dim);
+  max-width: 640px;
+  border-left: 2px solid var(--accent-dynamic, #444);
+  padding-left: 20px;
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .artist-hero-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .artist-photo-wrap {
+    max-width: 280px;
+    aspect-ratio: 1 / 1;
+  }
+
+  .artist-hero,
+  .album-section {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
