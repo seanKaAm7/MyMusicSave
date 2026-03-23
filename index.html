@@ -108,7 +108,9 @@
     }
 
     const CLIENT_ID = 'b00f079fd9434c97884bbfc791171eb5';
-    const REDIRECT_URI = window.location.origin + '/callback.html';
+    const REDIRECT_URI = (window.location.hostname === 'localhost'
+      ? 'http://127.0.0.1:' + window.location.port
+      : window.location.origin) + '/callback.html';
     const SCOPES = 'user-library-read user-read-private user-read-email';
 
     document.getElementById('btn-login').href =
