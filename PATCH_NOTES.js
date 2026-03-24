@@ -1,5 +1,15 @@
 /*
 ---------
+[2026년 03월 24일 — v0.5]
+ * 수동 장르 수정 (album.html) — 팝업 오버레이, 12개 장르 선택, Supabase PATCH 즉시 저장
+ * library.html 신규 — 전체 앨범 그리드, 장르/검색/정렬 필터
+ * Spotify 토큰 자동 갱신 (sync.js) — 401 시 refresh_token으로 갱신 후 재시도
+ * 연도 차트 밝기 차등 — 앨범 수 비례 opacity
+ * 대시보드 히어로 섹션 리디자인 — 중앙 정렬, MYMUSICSAVE 로고 배지, 이름 작게
+---------
+*/
+/*
+---------
 [2026년 03월 23일 — v0.4]
  * 뮤직맵 (map.html) 구현
  * netlify/functions/geocode.js — MusicBrainz API + 55개국 위경도 매핑 + Supabase upsert

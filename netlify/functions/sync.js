@@ -1,15 +1,18 @@
 // Spotify 보관함 전체 가져와서 Supabase에 저장
+
+// ── 장르 분류 (kpop 최우선, pop 마지막)
 const GENRE_MAP = [
+  [['k-pop', 'k pop', 'kpop', 'korean pop', 'korean idol'], 'kpop'],
   [['rap', 'hip hop', 'hip-hop', 'trap', 'drill', 'k-rap', 'korean hip hop'], 'hip-hop'],
-  [['r&b', 'soul', 'neo soul', 'rhythm and blues', 'k-r&b', 'korean r&b'], 'rnb'],
-  [['k-pop', 'k pop', 'korean pop', 'korean idol'], 'kpop'],
-  [['pop'], 'pop'],
+  [['r&b', 'rnb', 'soul', 'neo soul', 'rhythm and blues', 'k-r&b', 'korean r&b'], 'rnb'],
   [['rock', 'indie rock', 'alternative rock', 'punk', 'grunge', 'metal'], 'rock'],
   [['indie', 'alternative', 'folk', 'k-indie', 'korean indie'], 'alternative'],
   [['jazz', 'bebop', 'fusion', 'bossa nova', 'swing'], 'jazz'],
   [['electronic', 'edm', 'house', 'techno', 'ambient', 'synth', 'dance'], 'electronic'],
-  [['classical', 'piano', 'orchestra', 'chamber', 'baroque'], 'classical'],
+  [['classical', 'orchestra', 'chamber', 'baroque'], 'classical'],
   [['funk', 'disco', 'groove'], 'soul'],
+  [['soundtrack', 'ost', 'score', 'film score'], 'soundtrack'],
+  [['pop'], 'pop'],
 ];
 
 function classifyGenre(tags) {
@@ -26,7 +29,6 @@ async function getArtistGenreMap(artistNames) {
   const unique = [...new Set(artistNames)].filter(Boolean);
   const apiKey = process.env.LASTFM_API_KEY;
 
-  // 전부 동시에 병렬 요청
   await Promise.all(unique.map(async (name) => {
     try {
       const url = `https://ws.audioscrobbler.com/2.0/?method=artist.getTopTags&artist=${encodeURIComponent(name)}&api_key=${apiKey}&format=json&autocorrect=1`;
@@ -40,6 +42,23 @@ async function getArtistGenreMap(artistNames) {
     }
   }));
   return genreMap;
+}
+
+async function refreshAccessToken(refresh_token) {
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Basic ' + basic,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(refresh_token)}`,
+  });
+  const data = await res.json();
+  return data.access_token || null;
 }
 
 exports.handler = async (event) => {
@@ -59,7 +78,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers, body: JSON.stringify({ error: '잘못된 요청입니다' }) };
   }
 
-  const { access_token, spotify_id } = body;
+  let { access_token, refresh_token, spotify_id } = body;
   if (!access_token || !spotify_id) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'access_token과 spotify_id가 필요합니다' }) };
   }
@@ -80,19 +99,32 @@ exports.handler = async (event) => {
 
   // 2. Spotify 보관함 전체 페이지네이션으로 가져오기
   const allItems = [];
-  let url = 'https://api.spotify.com/v1/me/albums?limit=50';
+  let spotifyUrl = 'https://api.spotify.com/v1/me/albums?limit=50';
+  let new_access_token = null;
 
-  while (url) {
-    const res = await fetch(url, {
+  while (spotifyUrl) {
+    const res = await fetch(spotifyUrl, {
       headers: { 'Authorization': 'Bearer ' + access_token }
     });
+
+    // 토큰 만료 → 갱신 후 재시도
+    if (res.status === 401 && refresh_token) {
+      const refreshed = await refreshAccessToken(refresh_token);
+      if (!refreshed) {
+        return { statusCode: 401, headers, body: JSON.stringify({ error: '로그인이 만료되었습니다. 다시 로그인해주세요.' }) };
+      }
+      access_token = refreshed;
+      new_access_token = refreshed;
+      continue;
+    }
+
     if (!res.ok) {
       const err = await res.json();
       return { statusCode: 400, headers, body: JSON.stringify({ error: err.error?.message || 'Spotify 조회 실패' }) };
     }
     const data = await res.json();
     allItems.push(...data.items);
-    url = data.next || null;
+    spotifyUrl = data.next || null;
   }
 
   // 3. 아티스트 이름으로 Last.fm 장르 조회
@@ -121,7 +153,7 @@ exports.handler = async (event) => {
   const chunkSize = 50;
   for (let i = 0; i < toUpsert.length; i += chunkSize) {
     const chunk = toUpsert.slice(i, i + chunkSize);
-    const upsertRes = await fetch(`${supabaseUrl}/rest/v1/albums?on_conflict=user_id,spotify_album_id`, {
+    await fetch(`${supabaseUrl}/rest/v1/albums?on_conflict=user_id,spotify_album_id`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -136,6 +168,6 @@ exports.handler = async (event) => {
   return {
     statusCode: 200,
     headers,
-    body: JSON.stringify({ count: toUpsert.length })
+    body: JSON.stringify({ count: toUpsert.length, new_access_token })
   };
 };

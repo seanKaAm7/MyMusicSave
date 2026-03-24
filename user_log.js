@@ -1,5 +1,19 @@
 /*
 -----------------------------------------
+[Log #8] [2026-03-24]
+ * 사용자: 대시보드 히어로 섹션 디자인 변경 요청 — 중앙 정렬, MYMUSICSAVE 로고, 이름 작게, 구분선, 통계
+ * 작업: (1) dashboard.html 히어로 CSS 재설계 — 중앙 정렬(flex column), hero-logo(0.85rem 상단 배지), hero-username 크기 축소(clamp 2.2rem), hero-divider(24px 가로선). (2) 히어로 HTML에 hero-logo, hero-divider 요소 추가.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
+[Log #7] [2026-03-24]
+ * 사용자: 수동 장르 수정 기능, Spotify 토큰 자동 갱신, 연도 차트 밝기 차등, library.html 구현, 장르 분류 롤백
+ * 작업: (1) album.html — 장르 수동 수정 팝업(12개 옵션, Supabase PATCH). (2) sync.js — refreshAccessToken 추가, 401 시 자동 갱신 후 재시도, new_access_token 반환. (3) dashboard.html — 연도 차트 막대별 값 비례 opacity(0.15~0.90), 토큰 갱신 후 localStorage 저장. (4) library.html 신규 작성 — 전체 앨범 그리드(auto-fill 160px), 장르 필터/검색/정렬. (5) sync.js GENRE_MAP 복잡한 분류 시도 후 초기 단순 버전으로 완전 롤백(subgenre 컬럼 제거).
+-----------------------------------------
+*/
+/*
+-----------------------------------------
 [Log #6] [2026-03-23]
  * 사용자: 뮤직맵 구현 요청
  * 작업: (1) netlify/functions/geocode.js 작성 — MusicBrainz API 순차 조회(1.1초 간격), 55개국 country코드→위경도 매핑, 대륙 분류, Supabase artists 테이블 upsert. (2) netlify.toml에 geocode timeout=26 추가. (3) map.html 작성 — Leaflet.js + CartoDB Dark Matter 타일, MarkerCluster, 앨범수 비례 마커 크기, 우측 패널(대륙→국가→아티스트 트리), 배치 처리 진행률 바(20명씩). (4) Supabase SQL: artists 테이블 생성 필요 (continent 컬럼 포함).

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>라이브러리 — MyMusicSave</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── HEADER ── */
+    .lib-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(16px);
+    }
+    .lib-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .lib-header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .btn-back {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      padding: 0.38rem 0.85rem;
+      cursor: pointer;
+      font-family: inherit;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    .btn-back:hover { color: var(--text); border-color: var(--text); }
+
+    /* ── TOOLBAR ── */
+    .lib-toolbar {
+      padding: 1.2rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .lib-toolbar-top {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .lib-search {
+      flex: 1;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+      padding: 0.5rem 0;
+      outline: none;
+      max-width: 320px;
+    }
+    .lib-search::placeholder { color: var(--text-muted); }
+    .lib-search:focus { border-bottom-color: var(--text-dim); }
+
+    .lib-result-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      margin-left: auto;
+    }
+
+    .lib-sort {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      padding: 0.35rem 0.7rem;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      padding-right: 1.5rem;
+    }
+    .lib-sort:focus { outline: none; border-color: var(--text-dim); }
+
+    /* ── GENRE FILTERS ── */
+    .lib-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .filter-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      padding: 0.3rem 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover { color: var(--text); border-color: var(--text-dim); }
+    .filter-btn.active {
+      background: var(--text);
+      color: #000;
+      border-color: var(--text);
+    }
+
+    /* ── GRID ── */
+    .lib-main {
+      padding: 2rem 2.5rem;
+    }
+    .lib-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1.2rem;
+    }
+
+    /* ── ALBUM CARD ── */
+    .lib-card {
+      cursor: pointer;
+    }
+    .lib-card-art {
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+      background: var(--border);
+      margin-bottom: 0.6rem;
+    }
+    .lib-card-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+    .lib-card:hover .lib-card-art img { transform: scale(1.05); }
+    .lib-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .lib-card:hover .lib-card-overlay { opacity: 1; }
+    .lib-card-overlay svg {
+      width: 32px;
+      height: 32px;
+      fill: #fff;
+    }
+    .lib-card-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lib-card-artist {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lib-card-meta {
+      display: flex;
+      gap: 0.4rem;
+      margin-top: 0.2rem;
+      align-items: center;
+    }
+    .lib-card-year {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+    }
+    .lib-card-genre {
+      font-size: 0.58rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 0.1rem 0.35rem;
+    }
+
+    /* ── EMPTY / LOADING ── */
+    .lib-empty {
+      grid-column: 1 / -1;
+      padding: 4rem 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+    }
+
+    @media (max-width: 700px) {
+      .lib-toolbar, .lib-header, .lib-main {
+        padding-left: 1.2rem;
+        padding-right: 1.2rem;
+      }
+      .lib-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="lib-header">
+    <a class="lib-logo" href="/dashboard.html">MYMUSICSAVE</a>
+    <div class="lib-header-right">
+      <span id="lib-breadcrumb" style="font-size:0.7rem;color:var(--text-muted);letter-spacing:0.08em">/ LIBRARY</span>
+      <a class="btn-back" href="/dashboard.html">대시보드</a>
+    </div>
+  </header>
+
+  <div class="lib-toolbar">
+    <div class="lib-toolbar-top">
+      <input class="lib-search" id="lib-search" type="text" placeholder="앨범 또는 아티스트 검색...">
+      <span class="lib-result-count" id="result-count"></span>
+      <select class="lib-sort" id="lib-sort">
+        <option value="added_desc">최근 저장순</option>
+        <option value="added_asc">오래된 순</option>
+        <option value="year_desc">연도 최신순</option>
+        <option value="year_asc">연도 오래된순</option>
+        <option value="title_asc">제목순</option>
+        <option value="artist_asc">아티스트순</option>
+      </select>
+    </div>
+    <div class="lib-filters" id="lib-filters">
+      <!-- JS로 채워짐 -->
+    </div>
+  </div>
+
+  <main class="lib-main">
+    <div class="lib-grid" id="lib-grid">
+      <div class="lib-empty">로딩 중...</div>
+    </div>
+  </main>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem('mms_user') || 'null');
+    if (!user) window.location.href = '/';
+
+    const SUPABASE_URL = 'https://aanldsddamkjrziefhuf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhbmxkc2RkYW1ranJ6aWVmaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzg3NDYsImV4cCI6MjA4OTgxNDc0Nn0.N7uKqkjxrAtjvumwW-W5VH5qxCE4RtxKymNWfP097iY';
+
+    const GENRE_LABELS = {
+      'hip-hop': 'HIP-HOP', 'rnb': 'R&B', 'kpop': 'K-POP', 'pop': 'POP',
+      'rock': 'ROCK', 'alternative': 'ALT', 'jazz': 'JAZZ',
+      'electronic': 'ELECTRONIC', 'classical': 'CLASSICAL', 'soul': 'SOUL',
+      'soundtrack': 'SOUNDTRACK', 'other': 'OTHER'
+    };
+
+    let allAlbums = [];
+    let activeGenre = 'all';
+    let searchQuery = '';
+    let sortKey = 'added_desc';
+
+    async function loadLibrary() {
+      const userRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/users?spotify_id=eq.${user.spotify_id}&select=id`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+      );
+      const users = await userRes.json();
+      if (!users.length) return;
+      const userId = users[0].id;
+
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/albums?user_id=eq.${userId}&select=*&order=added_at.desc`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+      );
+      allAlbums = await res.json();
+
+      buildGenreFilters();
+      render();
+    }
+
+    function buildGenreFilters() {
+      const genres = [...new Set(allAlbums.map(a => a.genre).filter(Boolean))];
+      const sorted = Object.keys(GENRE_LABELS).filter(g => genres.includes(g));
+
+      const container = document.getElementById('lib-filters');
+      container.innerHTML = [
+        `<button class="filter-btn active" data-genre="all">ALL</button>`,
+        ...sorted.map(g =>
+          `<button class="filter-btn" data-genre="${g}">${GENRE_LABELS[g]}</button>`
+        )
+      ].join('');
+
+      container.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeGenre = btn.dataset.genre;
+          container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          render();
+        });
+      });
+    }
+
+    function getFiltered() {
+      let list = [...allAlbums];
+
+      // 장르 필터
+      if (activeGenre !== 'all') {
+        list = list.filter(a => a.genre === activeGenre);
+      }
+
+      // 검색
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        list = list.filter(a =>
+          a.title?.toLowerCase().includes(q) ||
+          a.artist?.toLowerCase().includes(q)
+        );
+      }
+
+      // 정렬
+      list.sort((a, b) => {
+        switch (sortKey) {
+          case 'added_desc': return new Date(b.added_at) - new Date(a.added_at);
+          case 'added_asc':  return new Date(a.added_at) - new Date(b.added_at);
+          case 'year_desc':  return (b.year || 0) - (a.year || 0);
+          case 'year_asc':   return (a.year || 0) - (b.year || 0);
+          case 'title_asc':  return (a.title || '').localeCompare(b.title || '');
+          case 'artist_asc': return (a.artist || '').localeCompare(b.artist || '');
+        }
+        return 0;
+      });
+
+      return list;
+    }
+
+    function render() {
+      const list = getFiltered();
+      const grid = document.getElementById('lib-grid');
+      document.getElementById('result-count').textContent = `${list.length}장`;
+
+      if (!list.length) {
+        grid.innerHTML = `<div class="lib-empty">검색 결과가 없습니다</div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(a => `
+        <div class="lib-card" onclick="location.href='/album.html?id=${a.spotify_album_id}'">
+          <div class="lib-card-art">
+            ${a.cover_url
+              ? `<img src="${a.cover_url}" alt="${escHtml(a.title)}" onerror="this.style.display='none'">`
+              : ''
+            }
+            <div class="lib-card-overlay">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <div class="lib-card-title">${escHtml(a.title)}</div>
+          <div class="lib-card-artist">${escHtml(a.artist)}</div>
+          <div class="lib-card-meta">
+            ${a.year ? `<span class="lib-card-year">${a.year}</span>` : ''}
+            ${a.genre ? `<span class="lib-card-genre">${escHtml(GENRE_LABELS[a.genre] || a.genre)}</span>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function escHtml(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    document.getElementById('lib-search').addEventListener('input', e => {
+      searchQuery = e.target.value.trim();
+      render();
+    });
+
+    document.getElementById('lib-sort').addEventListener('change', e => {
+      sortKey = e.target.value;
+      render();
+    });
+
+    loadLibrary();
+  </script>
+</body>
+</html>

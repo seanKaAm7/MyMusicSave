@@ -56,6 +56,72 @@
       color: var(--text-dim);
       flex-shrink: 0;
     }
+    .genre-edit-btn {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+    .genre-edit-btn:hover { opacity: 1; }
+    .genre-edit-btn svg { width: 10px; height: 10px; }
+
+    /* 장르 선택 팝업 */
+    .genre-popup {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .genre-popup-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+    }
+    .genre-popup-box {
+      position: relative;
+      background: #111;
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      min-width: 260px;
+      z-index: 1;
+    }
+    .genre-popup-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    .genre-popup-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.4rem;
+    }
+    .genre-option {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      padding: 0.45rem 0.5rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+    }
+    .genre-option:hover { background: rgba(255,255,255,0.06); color: var(--text); border-color: var(--text-dim); }
+    .genre-option.current { background: var(--text); color: #000; border-color: var(--text); }
+    .genre-popup-saving {
+      margin-top: 0.75rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      min-height: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -164,7 +230,10 @@
         <div class="album-poster-deco"></div>
         <div class="poster-top">
           <div class="poster-year">${year}</div>
-          <div class="poster-edition">${album?.genre?.toUpperCase() || ''}</div>
+          <div class="genre-edit-btn" id="genre-edit-btn" onclick="openGenrePopup()">
+            <span id="genre-display">${album?.genre?.toUpperCase() || 'OTHER'}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </div>
         </div>
         <div class="poster-title-block">
           <div class="poster-title">${title}</div>
@@ -221,6 +290,91 @@
 
       document.getElementById('loading').style.display = 'none';
       document.getElementById('poster-wrapper').style.display = 'block';
+    }
+
+    // ── 장르 수동 수정 ──
+    const GENRE_OPTIONS = [
+      { id: 'hip-hop',    label: 'HIP-HOP' },
+      { id: 'rnb',        label: 'R&B / SOUL' },
+      { id: 'kpop',       label: 'K-POP' },
+      { id: 'pop',        label: 'POP' },
+      { id: 'rock',       label: 'ROCK' },
+      { id: 'alternative',label: 'ALTERNATIVE' },
+      { id: 'electronic', label: 'ELECTRONIC' },
+      { id: 'jazz',       label: 'JAZZ' },
+      { id: 'classical',  label: 'CLASSICAL' },
+      { id: 'soul',       label: 'FUNK / SOUL' },
+      { id: 'soundtrack', label: 'SOUNDTRACK' },
+      { id: 'other',      label: 'OTHER' },
+    ];
+
+    let currentGenre = null;
+
+    function openGenrePopup() {
+      const genreText = document.getElementById('genre-display')?.textContent?.toLowerCase() || 'other';
+      currentGenre = genreText;
+
+      const popup = document.createElement('div');
+      popup.className = 'genre-popup';
+      popup.id = 'genre-popup';
+      popup.innerHTML = `
+        <div class="genre-popup-backdrop" onclick="closeGenrePopup()"></div>
+        <div class="genre-popup-box">
+          <div class="genre-popup-title">GENRE 수정</div>
+          <div class="genre-popup-grid">
+            ${GENRE_OPTIONS.map(g => `
+              <button class="genre-option ${g.id === genreText ? 'current' : ''}"
+                onclick="saveGenre('${g.id}', '${g.label}')">
+                ${g.label}
+              </button>
+            `).join('')}
+          </div>
+          <div class="genre-popup-saving" id="genre-saving"></div>
+        </div>
+      `;
+      document.body.appendChild(popup);
+    }
+
+    function closeGenrePopup() {
+      document.getElementById('genre-popup')?.remove();
+    }
+
+    async function saveGenre(genreId, genreLabel) {
+      document.getElementById('genre-saving').textContent = '저장 중...';
+
+      const user = JSON.parse(localStorage.getItem('mms_user') || 'null');
+      if (!user) return;
+
+      try {
+        const userRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/users?spotify_id=eq.${user.spotify_id}&select=id`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+        );
+        const users = await userRes.json();
+        if (!users.length) throw new Error('유저 없음');
+
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/albums?user_id=eq.${users[0].id}&spotify_album_id=eq.${spotifyId}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_KEY,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ genre: genreId }),
+          }
+        );
+
+        if (!res.ok) throw new Error('저장 실패');
+
+        // UI 업데이트
+        document.getElementById('genre-display').textContent = genreLabel;
+        currentGenre = genreId;
+        closeGenrePopup();
+      } catch (e) {
+        document.getElementById('genre-saving').textContent = '오류: ' + e.message;
+      }
     }
   </script>
 </body>
