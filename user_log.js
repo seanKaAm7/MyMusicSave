@@ -1,5 +1,22 @@
 /*
 -----------------------------------------
+[Log #10] [2026-03-24]
+ * 사용자: footer에 Last.fm 스타일 5컬럼 구성 요청
+ * 작업: dashboard.html footer를 5컬럼으로 확장 — MYMUSICSAVE(내부 페이지), GENRES(장르별 라이브러리 필터 링크), ACCOUNT(동기화/로그아웃 버튼), POWERED BY(Spotify/Last.fm/MusicBrainz/Supabase 외부 링크), FOLLOW(GitHub). footer-cols grid-template-columns repeat(4) → repeat(5) 변경.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
+[Log #9] [2026-03-24]
+ * 사용자: 구버전 파일 정리 및 현재 버전 백업 요청
+ * 작업: (1) git commit으로 v0.5 현재 상태 백업. (2) 구버전 music-archive v1 잔재 파일 삭제 — app.js, data.js, artist.html, genre.html, year.html, archive_spotify_expansion_plan.md, mymusicsave_plan.md, plan_ui_map.md, project_overview.md, project_system_guidelines.md. (3) 유틸 스크립트/의존성 삭제 — scripts/, node_modules/, package.json, package-lock.json, deno.lock. (4) 삭제 내용 git commit.
+ * 히어로 MYMUSICSAVE 로고 크기 대폭 확대 — 0.85rem → clamp(3rem,8vw,5.5rem), 색상 var(--text)으로 변경. hero-username 폰트 Space Mono 0.72rem으로 교체해 제일 작게.
+ * 앨범 그리드 정렬 기준 변경 — added_at.desc → year.desc,added_at.desc (발매 연도 최신순).
+ * 대시보드 footer GitHub 링크 URL 수정 — /seanka → /seanKaAm7.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
 [Log #8] [2026-03-24]
  * 사용자: 대시보드 히어로 섹션 디자인 변경 요청 — 중앙 정렬, MYMUSICSAVE 로고, 이름 작게, 구분선, 통계
  * 작업: (1) dashboard.html 히어로 CSS 재설계 — 중앙 정렬(flex column), hero-logo(0.85rem 상단 배지), hero-username 크기 축소(clamp 2.2rem), hero-divider(24px 가로선). (2) 히어로 HTML에 hero-logo, hero-divider 요소 추가.

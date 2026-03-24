@@ -1,5 +1,16 @@
 /*
 ---------
+[2026년 03월 24일 — v0.6]
+ * 대시보드 footer — Last.fm 스타일 5컬럼 (MYMUSICSAVE / GENRES / ACCOUNT / POWERED BY / FOLLOW)
+ * GENRES 컬럼 — Hip-Hop, R&B, K-Pop, Rock, Electronic, Jazz 장르별 라이브러리 바로가기
+ * POWERED BY 컬럼 — Spotify, Last.fm, MusicBrainz, Supabase 외부 링크
+ * 히어로 MYMUSICSAVE 로고 대형화 — clamp(3rem,8vw,5.5rem), 이름은 Space Mono 0.72rem으로 제일 작게
+ * 앨범 그리드 정렬 — 발매 연도 최신순(year.desc)으로 변경
+ * 구버전 파일 정리 — app.js, data.js, genre/year/artist.html, 기획문서 5개, scripts/node_modules 삭제
+---------
+*/
+/*
+---------
 [2026년 03월 24일 — v0.5]
  * 수동 장르 수정 (album.html) — 팝업 오버레이, 12개 장르 선택, Supabase PATCH 즉시 저장
  * library.html 신규 — 전체 앨범 그리드, 장르/검색/정렬 필터
