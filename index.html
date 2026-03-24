@@ -111,7 +111,7 @@
     const REDIRECT_URI = (window.location.hostname === 'localhost'
       ? 'http://127.0.0.1:' + window.location.port
       : window.location.origin) + '/callback.html';
-    const SCOPES = 'user-library-read user-read-private user-read-email';
+    const SCOPES = 'user-library-read user-read-private user-read-email user-top-read';
 
     document.getElementById('btn-login').href =
       'https://accounts.spotify.com/authorize?' +

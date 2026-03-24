@@ -1,5 +1,13 @@
 /*
 -----------------------------------------
+[Log #11] [2026-03-24]
+ * 사용자: 추천 기능 구현 요청 — 앨범 추천
+ * 작업: (1) netlify/functions/recommend.js 작성 — Spotify Top Artists → Last.fm getSimilar → Spotify Search → 보관함 필터링 → 최대 20개 추천. (2) recommend.html 작성 — 추천 앨범 그리드, Based on 표시, 로딩 애니메이션, Spotify 링크. (3) Spotify Top Artists가 비어있을 때 Supabase 보관함 최다 아티스트로 폴백. (4) index.html scope에 user-top-read 추가. (5) dashboard.html 헤더에 추천 링크 추가.
+ * 특이사항: Spotify /v1/recommendations 엔드포인트는 2024년 11월 정책 변경으로 Development Mode에서 완전 차단됨. Top Artists + Last.fm getSimilar + Spotify Search 조합으로 우회 구현.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
 [Log #10] [2026-03-24]
  * 사용자: footer에 Last.fm 스타일 5컬럼 구성 요청
  * 작업: dashboard.html footer를 5컬럼으로 확장 — MYMUSICSAVE(내부 페이지), GENRES(장르별 라이브러리 필터 링크), ACCOUNT(동기화/로그아웃 버튼), POWERED BY(Spotify/Last.fm/MusicBrainz/Supabase 외부 링크), FOLLOW(GitHub). footer-cols grid-template-columns repeat(4) → repeat(5) 변경.

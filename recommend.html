@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>추천 — MyMusicSave</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .rec-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(16px);
+    }
+    .rec-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .btn-back {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      padding: 0.38rem 0.85rem;
+      cursor: pointer;
+      font-family: inherit;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    .btn-back:hover { color: var(--text); border-color: var(--text); }
+
+    .rec-hero {
+      padding: 3rem 2.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .rec-hero-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .rec-hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      letter-spacing: 0.06em;
+      line-height: 1;
+      margin-bottom: 0.75rem;
+    }
+    .rec-hero-sub {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      margin-bottom: 1.5rem;
+    }
+    .btn-generate {
+      background: var(--text);
+      color: #000;
+      border: none;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      padding: 0.6rem 1.8rem;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-generate:hover { opacity: 0.85; }
+    .btn-generate:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .rec-based-on {
+      margin-top: 1rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+    .rec-based-on span {
+      color: var(--text-dim);
+    }
+
+    .rec-main {
+      padding: 2rem 2.5rem;
+    }
+    .rec-section-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+    .rec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1.2rem;
+    }
+
+    /* 앨범 카드 */
+    .rec-card {
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .rec-card-art {
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+      background: var(--border);
+      margin-bottom: 0.6rem;
+    }
+    .rec-card-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+    .rec-card:hover .rec-card-art img { transform: scale(1.05); }
+    .rec-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .rec-card:hover .rec-card-overlay { opacity: 1; }
+    .rec-card-overlay svg {
+      width: 28px;
+      height: 28px;
+      fill: #1DB954;
+    }
+    .rec-card-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.88rem;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rec-card-artist {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rec-card-year {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      margin-top: 0.1rem;
+    }
+
+    /* 상태 메시지 */
+    .rec-status {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      padding: 3rem 0;
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+    .rec-loading-bar {
+      width: 180px;
+      height: 1px;
+      background: var(--border);
+      margin: 1rem auto 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .rec-loading-bar::after {
+      content: '';
+      position: absolute;
+      left: -60%;
+      top: 0;
+      width: 60%;
+      height: 100%;
+      background: var(--text-dim);
+      animation: slide 1.2s ease-in-out infinite;
+    }
+    @keyframes slide {
+      0% { left: -60%; }
+      100% { left: 100%; }
+    }
+
+    @media (max-width: 700px) {
+      .rec-header, .rec-hero, .rec-main { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .rec-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="rec-header">
+    <a class="rec-logo" href="/dashboard.html">MYMUSICSAVE</a>
+    <a class="btn-back" href="/dashboard.html">대시보드</a>
+  </header>
+
+  <div class="rec-hero">
+    <div class="rec-hero-label">DISCOVER</div>
+    <div class="rec-hero-title">FOR YOU</div>
+    <div class="rec-hero-sub">최근 6개월 청취 기록을 분석해 아직 보관함에 없는 앨범을 추천합니다.</div>
+    <button class="btn-generate" id="btn-generate">추천 받기</button>
+    <div class="rec-based-on" id="based-on"></div>
+  </div>
+
+  <main class="rec-main">
+    <div class="rec-section-label" id="rec-label" style="display:none">RECOMMENDED ALBUMS</div>
+    <div class="rec-grid" id="rec-grid">
+      <div class="rec-status">추천 받기 버튼을 눌러 시작하세요.</div>
+    </div>
+  </main>
+
+  <script>
+    const token = localStorage.getItem('mms_access_token');
+    const user = JSON.parse(localStorage.getItem('mms_user') || 'null');
+    if (!token || !user) window.location.href = '/';
+
+    function escHtml(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    document.getElementById('btn-generate').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-generate');
+      const grid = document.getElementById('rec-grid');
+      const label = document.getElementById('rec-label');
+      const basedOn = document.getElementById('based-on');
+
+      btn.disabled = true;
+      btn.textContent = '분석 중...';
+      label.style.display = 'none';
+      basedOn.textContent = '';
+      grid.innerHTML = `
+        <div class="rec-status">
+          최근 청취 기록 분석 중...<br>잠시만 기다려주세요.
+          <div class="rec-loading-bar"></div>
+        </div>
+      `;
+
+      try {
+        const res = await fetch('/.netlify/functions/recommend', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_token: token,
+            spotify_id: user.spotify_id
+          })
+        });
+
+        const data = await res.json();
+
+        if (!data.ok) throw new Error(data.error || '추천 실패');
+
+        if (!data.recommendations.length) {
+          grid.innerHTML = `<div class="rec-status">추천할 앨범을 찾지 못했습니다.<br>Spotify에서 음악을 더 들어보세요.</div>`;
+          btn.disabled = false;
+          btn.textContent = '다시 시도';
+          return;
+        }
+
+        // 기반 아티스트 표시
+        if (data.basedOn?.length) {
+          basedOn.innerHTML = `Based on: <span>${data.basedOn.join(', ')}</span>`;
+        }
+
+        label.style.display = 'block';
+        grid.innerHTML = data.recommendations.map(r => `
+          <a class="rec-card" href="${escHtml(r.spotify_url || '#')}" target="_blank" rel="noopener">
+            <div class="rec-card-art">
+              ${r.cover_url
+                ? `<img src="${escHtml(r.cover_url)}" alt="${escHtml(r.title)}">`
+                : ''
+              }
+              <div class="rec-card-overlay">
+                <svg viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+              </div>
+            </div>
+            <div class="rec-card-title">${escHtml(r.title)}</div>
+            <div class="rec-card-artist">${escHtml(r.artist)}</div>
+            ${r.year ? `<div class="rec-card-year">${r.year}</div>` : ''}
+          </a>
+        `).join('');
+
+        btn.disabled = false;
+        btn.textContent = '새로 추천 받기';
+
+      } catch (err) {
+        grid.innerHTML = `<div class="rec-status">오류: ${escHtml(err.message)}</div>`;
+        btn.disabled = false;
+        btn.textContent = '다시 시도';
+      }
+    });
+  </script>
+</body>
+</html>

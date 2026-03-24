@@ -1,5 +1,16 @@
 /*
 ---------
+[2026년 03월 24일 — v0.7]
+ * 추천 기능 (recommend.html) 신규 구현
+ * Spotify Top Artists → Last.fm getSimilar → Spotify Search 파이프라인
+ * 스트리밍 기록 없을 시 보관함 최다 아티스트로 자동 폴백
+ * Based on: 추천 기준 아티스트 표시
+ * 호버 시 Spotify 로고, 클릭 시 Spotify 앱으로 이동
+ * 내일 예정: 앨범 / 아티스트 / 곡 3탭 분류
+---------
+*/
+/*
+---------
 [2026년 03월 24일 — v0.6]
  * 대시보드 footer — Last.fm 스타일 5컬럼 (MYMUSICSAVE / GENRES / ACCOUNT / POWERED BY / FOLLOW)
  * GENRES 컬럼 — Hip-Hop, R&B, K-Pop, Rock, Electronic, Jazz 장르별 라이브러리 바로가기
