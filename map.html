@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>뮤직맵 — MyMusicSave</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- MarkerCluster -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <style>
+    html, body { height: 100%; overflow: hidden; }
+
+    /* ── HEADER ── */
+    .map-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1.5rem;
+      background: rgba(10,10,10,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+    }
+    .map-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.2rem;
+      letter-spacing: 0.12em;
+      color: var(--text);
+    }
+    .map-breadcrumb {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+    .map-header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .btn-map-update {
+      background: var(--text);
+      color: #000;
+      border: none;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.1em;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+    }
+    .btn-map-update:hover { opacity: 0.85; }
+    .btn-map-update:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-back {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      padding: 0.38rem 0.85rem;
+      cursor: pointer;
+      font-family: inherit;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    .btn-back:hover { color: var(--text); border-color: var(--text); }
+
+    /* ── LAYOUT ── */
+    .map-layout {
+      position: fixed;
+      top: 49px; /* header height */
+      left: 0; right: 0; bottom: 0;
+      display: flex;
+    }
+
+    /* ── MAP ── */
+    #map {
+      flex: 1;
+      background: #0a0a0a;
+    }
+
+    /* Leaflet 마커 커스텀 */
+    .map-marker {
+      border-radius: 50%;
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 0 12px rgba(255,255,255,0.3);
+    }
+    .leaflet-popup-content-wrapper {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 2px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+    }
+    .leaflet-popup-tip { background: #111; }
+    .leaflet-popup-content { margin: 12px 16px; color: #f0f0f0; }
+
+    /* MarkerCluster 스타일 오버라이드 */
+    .marker-cluster-small,
+    .marker-cluster-medium,
+    .marker-cluster-large {
+      background: rgba(255,255,255,0.12) !important;
+    }
+    .marker-cluster-small div,
+    .marker-cluster-medium div,
+    .marker-cluster-large div {
+      background: rgba(255,255,255,0.25) !important;
+      color: #fff !important;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+    }
+
+    /* ── RIGHT PANEL ── */
+    .map-panel {
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--bg);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .panel-tab {
+      flex: 1;
+      padding: 0.75rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .panel-tab.active { color: var(--text); border-bottom-color: var(--text); }
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+    .panel-body::-webkit-scrollbar { width: 3px; }
+    .panel-body::-webkit-scrollbar-track { background: transparent; }
+    .panel-body::-webkit-scrollbar-thumb { background: #2a2a2a; }
+
+    /* 대륙 트리 */
+    .continent-group { margin-bottom: 1rem; }
+    .continent-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      cursor: pointer;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0.5rem;
+    }
+    .continent-label span { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--text-muted); }
+    .country-list { padding-left: 0.5rem; }
+    .country-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.3rem 0.5rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 2px;
+    }
+    .country-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .country-item.active { color: var(--text); background: rgba(255,255,255,0.06); }
+    .country-item-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+    }
+
+    /* 아티스트 패널 */
+    .artist-panel-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.25rem;
+    }
+    .artist-panel-sub {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .artist-panel-list { display: flex; flex-direction: column; gap: 0; }
+    .artist-panel-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+    .artist-panel-item:last-child { border-bottom: none; }
+    .artist-panel-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    /* ── 진행률 바 ── */
+    .progress-bar-wrap {
+      position: fixed;
+      bottom: 0; left: 0; right: 280px;
+      z-index: 1000;
+      background: rgba(10,10,10,0.9);
+      border-top: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .progress-bar-track {
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      border-radius: 1px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--text);
+      border-radius: 1px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    .progress-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* ── EMPTY STATE ── */
+    .map-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      z-index: 500;
+      pointer-events: none;
+    }
+    .map-empty-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.15);
+    }
+    .map-empty-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .map-empty-btn {
+      pointer-events: all;
+      background: var(--text);
+      color: #000;
+      border: none;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      padding: 0.6rem 1.6rem;
+      cursor: pointer;
+    }
+
+    @media (max-width: 700px) {
+      .map-panel { display: none; }
+      .progress-bar-wrap { right: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="map-header">
+    <div style="display:flex;align-items:center;gap:0.75rem">
+      <div class="map-logo">MYMUSICSAVE</div>
+      <div class="map-breadcrumb">/ MUSIC MAP</div>
+    </div>
+    <div class="map-header-right">
+      <button class="btn-map-update" id="btn-update">지도 업데이트</button>
+      <a class="btn-back" href="/dashboard.html">대시보드</a>
+    </div>
+  </header>
+
+  <div class="map-layout">
+    <div id="map">
+      <div class="map-empty" id="map-empty" style="display:none">
+        <div class="map-empty-title">NO DATA</div>
+        <div class="map-empty-sub">아직 아티스트 위치 데이터가 없어요.<br>지도 업데이트 버튼을 눌러 시작하세요.</div>
+        <button class="map-empty-btn" onclick="startUpdate()">지도 업데이트</button>
+      </div>
+    </div>
+    <aside class="map-panel">
+      <div class="panel-tabs">
+        <button class="panel-tab active" id="tab-region" onclick="switchTab('region')">지역</button>
+        <button class="panel-tab" id="tab-artists" onclick="switchTab('artists')">아티스트</button>
+      </div>
+      <div class="panel-body" id="panel-body">
+        <div style="color:var(--text-muted);font-size:.8rem;font-family:'Space Mono',monospace">로딩 중...</div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="progress-bar-wrap" id="progress-wrap" style="display:none">
+    <div class="progress-text" id="progress-text">0 / 0</div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem('mms_user') || 'null');
+    if (!user) window.location.href = '/';
+
+    const SUPABASE_URL = 'https://aanldsddamkjrziefhuf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhbmxkc2RkYW1ranJ6aWVmaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzg3NDYsImV4cCI6MjA4OTgxNDc0Nn0.N7uKqkjxrAtjvumwW-W5VH5qxCE4RtxKymNWfP097iY';
+
+    const CONTINENT_ORDER = ['N.AMERICA', 'S.AMERICA', 'EUROPE', 'ASIA', 'AFRICA', 'OCEANIA', 'OTHER'];
+
+    // Leaflet 지도 초기화
+    const map = L.map('map', {
+      center: [20, 0],
+      zoom: 2,
+      zoomControl: true,
+      attributionControl: false,
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© CartoDB',
+      subdomains: 'abcd',
+      maxZoom: 18,
+    }).addTo(map);
+
+    L.control.attribution({ position: 'bottomleft', prefix: '© CartoDB' }).addTo(map);
+
+    const clusterGroup = L.markerClusterGroup({
+      maxClusterRadius: 40,
+      spiderfyOnMaxZoom: true,
+    });
+    map.addLayer(clusterGroup);
+
+    let allArtists = [];
+    let activeTab = 'region';
+    let selectedCountry = null;
+
+    // ── 데이터 로드 ──
+    async function loadMapData() {
+      const userRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/users?spotify_id=eq.${user.spotify_id}&select=id`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+      );
+      const users = await userRes.json();
+      if (!users.length) return;
+      const userId = users[0].id;
+
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/artists?user_id=eq.${userId}&lat=not.is.null&select=*&order=album_count.desc`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+      );
+      allArtists = await res.json();
+
+      if (!allArtists.length) {
+        document.getElementById('map-empty').style.display = 'flex';
+        document.getElementById('panel-body').innerHTML =
+          `<div style="color:var(--text-muted);font-size:.78rem;line-height:1.7">아직 데이터가 없어요.<br>헤더의 <b style="color:var(--text-dim)">지도 업데이트</b>를 눌러주세요.</div>`;
+        return;
+      }
+
+      document.getElementById('map-empty').style.display = 'none';
+      renderMarkers(allArtists);
+      renderRegionPanel(allArtists);
+    }
+
+    // ── 마커 렌더링 ──
+    function renderMarkers(artists) {
+      clusterGroup.clearLayers();
+      const maxCount = Math.max(...artists.map(a => a.album_count || 1));
+
+      artists.forEach(a => {
+        const r = 6 + Math.round((a.album_count / maxCount) * 14);
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="map-marker" style="width:${r*2}px;height:${r*2}px;opacity:${0.5 + (a.album_count/maxCount)*0.5}"></div>`,
+          iconSize: [r*2, r*2],
+          iconAnchor: [r, r],
+        });
+        const marker = L.marker([a.lat, a.lng], { icon });
+        marker.bindPopup(buildPopup(a));
+        marker.on('click', () => {
+          showArtistsForLocation(a.lat, a.lng, a.country_name, a.city);
+        });
+        clusterGroup.addLayer(marker);
+      });
+    }
+
+    function buildPopup(a) {
+      return `<div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.06em;margin-bottom:2px">${escHtml(a.country_name || '')}</div>
+              <div style="font-size:0.72rem;color:#888">${escHtml(a.city || '')}${a.city ? ' · ' : ''}${a.album_count}장</div>`;
+    }
+
+    // ── 지역 패널 ──
+    function renderRegionPanel(artists) {
+      const byContinent = {};
+      artists.forEach(a => {
+        const cont = a.continent || 'OTHER';
+        if (!byContinent[cont]) byContinent[cont] = {};
+        const key = a.country_name || a.country || '?';
+        if (!byContinent[cont][key]) byContinent[cont][key] = { count: 0, artists: [] };
+        byContinent[cont][key].count += a.album_count || 1;
+        byContinent[cont][key].artists.push(a);
+      });
+
+      const panel = document.getElementById('panel-body');
+      panel.innerHTML = CONTINENT_ORDER
+        .filter(c => byContinent[c])
+        .map(cont => {
+          const countries = byContinent[cont];
+          const totalCount = Object.values(countries).reduce((s, v) => s + v.count, 0);
+          const countryItems = Object.entries(countries)
+            .sort((a, b) => b[1].count - a[1].count)
+            .map(([name, data]) => `
+              <div class="country-item" data-country="${escHtml(name)}" onclick="focusCountry('${escHtml(name)}', ${JSON.stringify(data.artists).replace(/'/g,"&#39;")})">
+                <span>${escHtml(name)}</span>
+                <span class="country-item-count">${data.count}</span>
+              </div>
+            `).join('');
+          return `
+            <div class="continent-group">
+              <div class="continent-label">${cont} <span>${totalCount}</span></div>
+              <div class="country-list">${countryItems}</div>
+            </div>
+          `;
+        }).join('');
+    }
+
+    function focusCountry(countryName, artists) {
+      // 기존 active 해제
+      document.querySelectorAll('.country-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll(`[data-country="${CSS.escape(countryName)}"]`)
+        .forEach(el => el.classList.add('active'));
+
+      selectedCountry = countryName;
+      showArtistsForCountry(countryName, artists);
+
+      // 해당 국가 아티스트들로 지도 범위 맞추기
+      if (artists.length) {
+        const bounds = L.latLngBounds(artists.map(a => [a.lat, a.lng]));
+        map.fitBounds(bounds, { padding: [60, 60], maxZoom: 6 });
+      }
+    }
+
+    function showArtistsForCountry(countryName, artists) {
+      switchTab('artists');
+      const panel = document.getElementById('panel-body');
+      panel.innerHTML = `
+        <div class="artist-panel-title">${escHtml(countryName)}</div>
+        <div class="artist-panel-sub">${artists.length}명 아티스트</div>
+        <div class="artist-panel-list">
+          ${artists.sort((a,b) => (b.album_count||1)-(a.album_count||1)).map(a => `
+            <div class="artist-panel-item">
+              <span>${escHtml(a.name)}</span>
+              <span class="artist-panel-count">${a.album_count || 1}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top:1rem">
+          <button onclick="switchTab('region');renderRegionPanel(allArtists)" style="background:none;border:none;color:var(--text-muted);font-size:.7rem;cursor:pointer;letter-spacing:.08em;text-transform:uppercase">← 지역으로</button>
+        </div>
+      `;
+    }
+
+    function showArtistsForLocation(lat, lng, countryName, city) {
+      const nearby = allArtists.filter(a =>
+        Math.abs(a.lat - lat) < 0.01 && Math.abs(a.lng - lng) < 0.01
+      );
+      if (!nearby.length) return;
+      showArtistsForCountry(city || countryName, nearby);
+    }
+
+    // ── 탭 전환 ──
+    function switchTab(tab) {
+      activeTab = tab;
+      document.getElementById('tab-region').classList.toggle('active', tab === 'region');
+      document.getElementById('tab-artists').classList.toggle('active', tab === 'artists');
+      if (tab === 'region') renderRegionPanel(allArtists);
+    }
+
+    // ── 지도 업데이트 (배치 처리) ──
+    async function startUpdate() {
+      // 모든 앨범의 아티스트 목록 가져오기
+      const userRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/users?spotify_id=eq.${user.spotify_id}&select=id`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+      );
+      const users = await userRes.json();
+      if (!users.length) return;
+      const userId = users[0].id;
+
+      const albumsRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/albums?user_id=eq.${userId}&select=artist`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+      );
+      const albums = await albumsRes.json();
+      const albumCounts = {};
+      albums.forEach(a => { albumCounts[a.artist] = (albumCounts[a.artist] || 0) + 1; });
+      const artistNames = [...new Set(albums.map(a => a.artist))];
+
+      // 이미 처리된 아티스트 제외
+      const existingRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/artists?user_id=eq.${userId}&select=name`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+      );
+      const existing = await existingRes.json();
+      const existingNames = new Set(existing.map(a => a.name));
+      const toProcess = artistNames.filter(n => !existingNames.has(n));
+
+      if (!toProcess.length) {
+        alert('모든 아티스트가 이미 처리되었습니다. 지도를 새로고침합니다.');
+        await loadMapData();
+        return;
+      }
+
+      // 배치 처리 (12명씩, 12×1.1초=13초 + 오버헤드 = 약 16초)
+      const BATCH_SIZE = 12;
+      const total = toProcess.length;
+      let done = 0;
+
+      const btn = document.getElementById('btn-update');
+      btn.disabled = true;
+      btn.textContent = '업데이트 중...';
+      document.getElementById('progress-wrap').style.display = 'flex';
+
+      for (let i = 0; i < toProcess.length; i += BATCH_SIZE) {
+        const batch = toProcess.slice(i, i + BATCH_SIZE);
+        document.getElementById('progress-text').textContent = `${done} / ${total}`;
+        document.getElementById('progress-fill').style.width = `${(done/total)*100}%`;
+
+        try {
+          const res = await fetch('/.netlify/functions/geocode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ spotify_id: user.spotify_id, artist_names: batch, album_counts: albumCounts }),
+          });
+          const data = await res.json();
+          done += batch.length;
+        } catch (e) {
+          console.error('배치 오류:', e);
+        }
+      }
+
+      document.getElementById('progress-text').textContent = `완료 ${done} / ${total}`;
+      document.getElementById('progress-fill').style.width = '100%';
+
+      btn.disabled = false;
+      btn.textContent = '지도 업데이트';
+
+      setTimeout(() => {
+        document.getElementById('progress-wrap').style.display = 'none';
+      }, 2000);
+
+      await loadMapData();
+    }
+
+    document.getElementById('btn-update').addEventListener('click', startUpdate);
+
+    function escHtml(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // 시작
+    loadMapData();
+  </script>
+</body>
+</html>

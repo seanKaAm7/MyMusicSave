@@ -7,233 +7,305 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    .dashboard-header {
-      padding: 2.5rem 2rem 1rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    .dashboard-logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.4rem;
-      letter-spacing: 0.1em;
-      color: var(--accent);
-    }
-    .dashboard-user {
-      font-size: 0.85rem;
-      color: var(--muted);
+    /* ── HEADER ── */
+    .dash-header {
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 2.5rem;
+      border-bottom: 1px solid var(--border);
       gap: 1rem;
     }
-    .btn-logout {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 0.78rem;
-      padding: 0.3rem 0.75rem;
-      cursor: pointer;
-      font-family: inherit;
+    .dash-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 0.12em;
+      color: var(--text);
     }
-    .btn-logout:hover { color: var(--fg); border-color: var(--fg); }
+    .dash-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
     .btn-sync {
-      background: var(--accent);
+      background: var(--text);
       color: #000;
       border: none;
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 1rem;
-      letter-spacing: 0.08em;
-      padding: 0.5rem 1.2rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.1em;
+      padding: 0.45rem 1.2rem;
       cursor: pointer;
     }
     .btn-sync:hover { opacity: 0.85; }
-    .btn-sync:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-sync:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-outline {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      padding: 0.4rem 0.9rem;
+      cursor: pointer;
+      font-family: inherit;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    .btn-outline:hover { color: var(--text); border-color: var(--text); }
 
-    .stats-row {
-      display: flex;
-      gap: 1px;
-      background: var(--border);
+    /* ── HERO ── */
+    .dash-hero {
+      padding: 3.5rem 2.5rem 2.5rem;
       border-bottom: 1px solid var(--border);
     }
-    .stat-card {
-      flex: 1;
-      background: var(--bg);
-      padding: 1.5rem 2rem;
-    }
-    .stat-label {
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 0.4rem;
-    }
-    .stat-value {
+    .hero-username {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.2rem;
-      letter-spacing: 0.05em;
-      color: var(--fg);
+      font-size: clamp(2.8rem, 5vw, 4.5rem);
+      line-height: 0.92;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+    .hero-stats {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      display: flex;
+      gap: 0;
+    }
+    .hero-stat {
+      display: flex;
+      gap: 0.5rem;
+      align-items: baseline;
+    }
+    .hero-stat + .hero-stat::before {
+      content: '·';
+      margin: 0 0.75rem;
+      color: var(--border);
+    }
+    .hero-stat-num {
+      color: var(--text-dim);
+    }
+    .sync-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.04em;
     }
 
-    .charts-row {
+    /* ── SECTION WRAPPER ── */
+    .dash-section {
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 2.5rem;
+    }
+    .dash-section-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── GENRE TYPOGRAPHY ── */
+    .genre-typo {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem 1.2rem;
+      line-height: 1.1;
+    }
+    .genre-typo-item {
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .genre-typo-item:hover { opacity: 0.6; }
+    .genre-typo-item.active {
+      border-bottom: 2px solid var(--text);
+      opacity: 1 !important;
+    }
+    .genre-typo-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6em;
+      color: var(--text-muted);
+      vertical-align: baseline;
+      margin-left: 0.15em;
+    }
+
+    /* ── ALBUM COVER GRID ── */
+    .cover-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 4px;
+    }
+    .cover-item {
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--border);
+    }
+    .cover-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+    .cover-item:hover img { transform: scale(1.06); }
+    .cover-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0.5rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .cover-item:hover .cover-overlay { opacity: 1; }
+    .cover-overlay-title {
+      font-size: 0.62rem;
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 0.06em;
+      line-height: 1.2;
+      color: #fff;
+    }
+    .cover-overlay-artist {
+      font-size: 0.55rem;
+      color: rgba(255,255,255,0.55);
+      margin-top: 0.15rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── BOTTOM SPLIT ── */
+    .dash-bottom {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1px;
       background: var(--border);
-      border-bottom: 1px solid var(--border);
     }
-    .chart-card {
+    .dash-bottom-col {
       background: var(--bg);
-      padding: 2rem;
+      padding: 2rem 2.5rem;
     }
-    .chart-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1rem;
-      letter-spacing: 0.12em;
-      color: var(--muted);
-      margin-bottom: 1.5rem;
-    }
+
+    /* ── YEAR CHART ── */
     .chart-wrap {
       position: relative;
-      height: 240px;
+      height: 180px;
     }
 
-    .section-block {
-      padding: 2rem;
+    /* ── ARTIST LIST ── */
+    .artist-poster-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .artist-poster-row {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.55rem 0;
       border-bottom: 1px solid var(--border);
     }
-    .section-block-title {
+    .artist-poster-row:last-child { border-bottom: none; }
+    .artist-poster-num {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 1rem;
-      letter-spacing: 0.12em;
-      color: var(--muted);
-      margin-bottom: 1.5rem;
+      font-size: 1.6rem;
+      line-height: 1;
+      color: var(--text-muted);
+      min-width: 2rem;
+      text-align: right;
     }
-    .artist-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+    .artist-poster-name {
+      flex: 1;
+      font-size: 0.88rem;
+      color: var(--text-dim);
     }
-    .artist-row {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    .artist-rank {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1rem;
-      color: var(--muted);
-      width: 1.5rem;
-    }
-    .artist-name { flex: 1; font-size: 0.9rem; }
-    .artist-count {
-      font-size: 0.78rem;
-      color: var(--muted);
+    .artist-poster-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
     }
 
-    .recent-albums {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
+    @media (max-width: 900px) {
+      .cover-grid { grid-template-columns: repeat(5, 1fr); }
+      .dash-bottom { grid-template-columns: 1fr; }
     }
-    .recent-album {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-      width: 120px;
-      cursor: pointer;
-    }
-    .recent-album img {
-      width: 120px;
-      height: 120px;
-      object-fit: cover;
-      background: var(--border);
-    }
-    .recent-album-title {
-      font-size: 0.8rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .recent-album-artist {
-      font-size: 0.72rem;
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .sync-status {
-      font-size: 0.8rem;
-      color: var(--muted);
-      padding: 0.5rem 2rem;
-    }
-
-    @media (max-width: 700px) {
-      .charts-row { grid-template-columns: 1fr; }
-      .stats-row { flex-direction: column; gap: 0; }
+    @media (max-width: 600px) {
+      .cover-grid { grid-template-columns: repeat(4, 1fr); }
+      .dash-hero { padding: 2rem 1.5rem; }
+      .dash-section, .dash-bottom-col { padding: 1.5rem; }
+      .dash-header { padding: 1rem 1.5rem; }
     }
   </style>
 </head>
 <body>
-  <header class="dashboard-header">
-    <div class="dashboard-logo">MYMUSICSAVE</div>
-    <div class="dashboard-user">
-      <span id="user-name">로딩 중...</span>
+
+  <header class="dash-header">
+    <div class="dash-logo">MYMUSICSAVE</div>
+    <div class="dash-actions">
       <button class="btn-sync" id="btn-sync" disabled>동기화</button>
-      <button class="btn-logout" id="btn-logout">로그아웃</button>
+      <a class="btn-outline" href="/map.html">뮤직맵</a>
+      <button class="btn-outline" id="btn-logout">로그아웃</button>
     </div>
   </header>
 
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-label">총 앨범</div>
-      <div class="stat-value" id="stat-albums">—</div>
+  <section class="dash-hero">
+    <div class="hero-username" id="hero-username">—</div>
+    <div class="hero-stats" id="hero-stats">
+      <span class="hero-stat"><span class="hero-stat-num" id="stat-albums">—</span> ALBUMS</span>
+      <span class="hero-stat"><span class="hero-stat-num" id="stat-artists">—</span> ARTISTS</span>
+      <span class="hero-stat"><span class="hero-stat-num" id="stat-genres">—</span> GENRES</span>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">아티스트</div>
-      <div class="stat-value" id="stat-artists">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">장르</div>
-      <div class="stat-value" id="stat-genres">—</div>
-    </div>
-  </div>
+    <div class="sync-status" id="sync-status"></div>
+  </section>
 
-  <div class="sync-status" id="sync-status"></div>
-
-  <div class="charts-row">
-    <div class="chart-card">
-      <div class="chart-title">장르 분포</div>
-      <div class="chart-wrap"><canvas id="chart-genre"></canvas></div>
+  <section class="dash-section">
+    <div class="dash-section-label">GENRE</div>
+    <div class="genre-typo" id="genre-typo">
+      <span style="color:var(--text-muted);font-size:.85rem;font-family:'Space Mono',monospace">동기화 후 표시됩니다</span>
     </div>
-    <div class="chart-card">
-      <div class="chart-title">연도별 분포</div>
+  </section>
+
+  <section class="dash-section">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.5rem">
+      <div class="dash-section-label" style="margin-bottom:0" id="albums-label">ALBUMS</div>
+      <span id="albums-count" style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text-muted)"></span>
+    </div>
+    <div class="cover-grid" id="cover-grid">
+      <span style="color:var(--text-muted);font-size:.85rem;font-family:'Space Mono',monospace;grid-column:1/-1">동기화 후 표시됩니다</span>
+    </div>
+  </section>
+
+  <div class="dash-bottom">
+    <div class="dash-bottom-col">
+      <div class="dash-section-label">YEAR</div>
       <div class="chart-wrap"><canvas id="chart-year"></canvas></div>
     </div>
-  </div>
-
-  <div class="section-block">
-    <div class="section-block-title">아티스트 TOP 10</div>
-    <div class="artist-list" id="artist-list"><span style="color:var(--muted);font-size:.85rem">동기화 후 표시됩니다</span></div>
-  </div>
-
-  <div class="section-block">
-    <div class="section-block-title">최근 저장한 앨범</div>
-    <div class="recent-albums" id="recent-albums"><span style="color:var(--muted);font-size:.85rem">동기화 후 표시됩니다</span></div>
+    <div class="dash-bottom-col">
+      <div class="dash-section-label">ARTIST TOP 10</div>
+      <div class="artist-poster-list" id="artist-list">
+        <span style="color:var(--text-muted);font-size:.85rem;font-family:'Space Mono',monospace">동기화 후 표시됩니다</span>
+      </div>
+    </div>
   </div>
 
   <script>
-    // 로그인 체크
     const token = localStorage.getItem('mms_access_token');
     const user = JSON.parse(localStorage.getItem('mms_user') || 'null');
-    if (!token || !user) {
-      window.location.href = '/';
-    }
+    if (!token || !user) window.location.href = '/';
 
-    document.getElementById('user-name').textContent = user?.display_name || '';
+    document.getElementById('hero-username').textContent = (user?.display_name || '').toUpperCase();
     document.getElementById('btn-sync').disabled = false;
 
     document.getElementById('btn-logout').addEventListener('click', () => {
@@ -241,9 +313,7 @@
       window.location.href = '/';
     });
 
-    document.getElementById('btn-sync').addEventListener('click', () => {
-      syncLibrary();
-    });
+    document.getElementById('btn-sync').addEventListener('click', syncLibrary);
 
     async function syncLibrary() {
       const btn = document.getElementById('btn-sync');
@@ -264,7 +334,6 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
-
         status.textContent = `동기화 완료 — 앨범 ${data.count}장`;
         loadDashboard();
       } catch (err) {
@@ -275,72 +344,142 @@
       }
     }
 
-    async function loadDashboard() {
-      const supabaseUrl = 'https://aanldsddamkjrziefhuf.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhbmxkc2RkYW1ranJ6aWVmaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzg3NDYsImV4cCI6MjA4OTgxNDc0Nn0.N7uKqkjxrAtjvumwW-W5VH5qxCE4RtxKymNWfP097iY';
+    const SUPABASE_URL = 'https://aanldsddamkjrziefhuf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhbmxkc2RkYW1ranJ6aWVmaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzg3NDYsImV4cCI6MjA4OTgxNDc0Nn0.N7uKqkjxrAtjvumwW-W5VH5qxCE4RtxKymNWfP097iY';
 
-      // 유저 ID 가져오기
+    async function loadDashboard() {
       const userRes = await fetch(
-        `${supabaseUrl}/rest/v1/users?spotify_id=eq.${user.spotify_id}&select=id`,
-        { headers: { 'apikey': supabaseKey, 'Authorization': 'Bearer ' + supabaseKey } }
+        `${SUPABASE_URL}/rest/v1/users?spotify_id=eq.${user.spotify_id}&select=id`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
       );
       const users = await userRes.json();
       if (!users.length) return;
       const userId = users[0].id;
 
-      // 앨범 전체 가져오기
       const albumsRes = await fetch(
-        `${supabaseUrl}/rest/v1/albums?user_id=eq.${userId}&select=*&order=added_at.desc`,
-        { headers: { 'apikey': supabaseKey, 'Authorization': 'Bearer ' + supabaseKey } }
+        `${SUPABASE_URL}/rest/v1/albums?user_id=eq.${userId}&select=*&order=added_at.desc`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
       );
       const albums = await albumsRes.json();
-
       if (!albums.length) return;
 
-      // 통계
-      const artists = [...new Set(albums.map(a => a.artist))];
-      const genres = [...new Set(albums.map(a => a.genre).filter(Boolean))];
+      const artistSet = [...new Set(albums.map(a => a.artist))];
+      const genreSet = [...new Set(albums.map(a => a.genre).filter(Boolean))];
       document.getElementById('stat-albums').textContent = albums.length;
-      document.getElementById('stat-artists').textContent = artists.length;
-      document.getElementById('stat-genres').textContent = genres.length;
+      document.getElementById('stat-artists').textContent = artistSet.length;
+      document.getElementById('stat-genres').textContent = genreSet.length;
 
-      renderGenreChart(albums);
+      allAlbums = albums;
+      activeGenre = null;
+      renderGenreTypo(albums);
+      renderCoverGrid(albums);
       renderYearChart(albums);
       renderArtistList(albums);
-      renderRecentAlbums(albums.slice(0, 10));
     }
 
-    function renderGenreChart(albums) {
+    let allAlbums = [];
+    let activeGenre = null;
+
+    function renderGenreTypo(albums) {
       const counts = {};
       albums.forEach(a => { if (a.genre) counts[a.genre] = (counts[a.genre] || 0) + 1; });
-      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
-      new Chart(document.getElementById('chart-genre'), {
-        type: 'doughnut',
-        data: {
-          labels: sorted.map(([k]) => k),
-          datasets: [{ data: sorted.map(([, v]) => v), backgroundColor: [
-            '#1DB954','#e8c547','#e55','#4a9eed','#b56eff','#ff8c42','#50e3c2','#ff6b9d'
-          ], borderWidth: 0 }]
-        },
-        options: { plugins: { legend: { labels: { color: '#aaa', font: { size: 11 } } } } }
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      if (!sorted.length) return;
+
+      const max = sorted[0][1];
+      const min = sorted[sorted.length - 1][1];
+      const minSize = 1.4, maxSize = 5.5;
+
+      const container = document.getElementById('genre-typo');
+      container.innerHTML = sorted.map(([genre, count]) => {
+        const ratio = max === min ? 1 : (count - min) / (max - min);
+        const size = minSize + ratio * (maxSize - minSize);
+        const lightness = 40 + Math.round(ratio * 40);
+        return `<span class="genre-typo-item" data-genre="${escHtml(genre)}" style="font-size:${size.toFixed(2)}rem;color:hsl(0,0%,${lightness}%)">
+          ${escHtml(genre.toUpperCase())}<span class="genre-typo-count">${count}</span>
+        </span>`;
+      }).join('');
+
+      container.querySelectorAll('.genre-typo-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const genre = el.dataset.genre;
+          if (activeGenre === genre) {
+            activeGenre = null;
+            el.classList.remove('active');
+          } else {
+            container.querySelectorAll('.genre-typo-item').forEach(e => e.classList.remove('active'));
+            activeGenre = genre;
+            el.classList.add('active');
+          }
+          renderCoverGrid(allAlbums);
+        });
       });
     }
 
+    function renderCoverGrid(albums) {
+      const label = document.getElementById('albums-label');
+      const countEl = document.getElementById('albums-count');
+      let filtered;
+      if (activeGenre) {
+        filtered = albums.filter(a => a.genre === activeGenre);
+        label.textContent = activeGenre.toUpperCase();
+        countEl.textContent = `${filtered.length}장`;
+      } else {
+        filtered = albums.slice(0, 20);
+        label.textContent = 'RECENT ALBUMS';
+        countEl.textContent = '';
+      }
+
+      const grid = document.getElementById('cover-grid');
+      if (!filtered.length) {
+        grid.innerHTML = `<span style="color:var(--text-muted);font-size:.85rem;font-family:'Space Mono',monospace;grid-column:1/-1">앨범 없음</span>`;
+        return;
+      }
+      grid.innerHTML = filtered.map(a => `
+        <div class="cover-item" onclick="location.href='/album.html?id=${a.spotify_album_id}'">
+          <img src="${a.cover_url || ''}" alt="${escHtml(a.title)}" onerror="this.style.display='none'">
+          <div class="cover-overlay">
+            <div class="cover-overlay-title">${escHtml(a.title)}</div>
+            <div class="cover-overlay-artist">${escHtml(a.artist)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    let yearChartInstance = null;
     function renderYearChart(albums) {
       const counts = {};
       albums.forEach(a => { if (a.year) counts[a.year] = (counts[a.year] || 0) + 1; });
       const sorted = Object.entries(counts).sort((a, b) => a[0] - b[0]);
-      new Chart(document.getElementById('chart-year'), {
+
+      const values = sorted.map(([, v]) => v);
+      const maxVal = Math.max(...values);
+      const colors = values.map(v => {
+        const ratio = v / maxVal;
+        const alpha = 0.15 + ratio * 0.75;
+        return `rgba(255,255,255,${alpha.toFixed(2)})`;
+      });
+
+      if (yearChartInstance) yearChartInstance.destroy();
+      yearChartInstance = new Chart(document.getElementById('chart-year'), {
         type: 'bar',
         data: {
           labels: sorted.map(([k]) => k),
-          datasets: [{ data: sorted.map(([, v]) => v), backgroundColor: '#1DB954', borderRadius: 2 }]
+          datasets: [{ data: values, backgroundColor: colors, borderRadius: 1 }]
         },
         options: {
           plugins: { legend: { display: false } },
           scales: {
-            x: { ticks: { color: '#666', font: { size: 10 } }, grid: { display: false } },
-            y: { ticks: { color: '#666', font: { size: 10 } }, grid: { color: '#222' } }
+            x: {
+              ticks: { color: '#555', font: { family: "'Bebas Neue'", size: 10 }, maxRotation: 0 },
+              grid: { display: false },
+              border: { color: '#2a2a2a' }
+            },
+            y: {
+              ticks: { color: '#444', font: { size: 9 }, maxTicksLimit: 4 },
+              grid: { color: '#161616' },
+              border: { display: false }
+            }
           }
         }
       });
@@ -351,25 +490,18 @@
       albums.forEach(a => { counts[a.artist] = (counts[a.artist] || 0) + 1; });
       const top10 = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
       document.getElementById('artist-list').innerHTML = top10.map(([name, count], i) => `
-        <div class="artist-row">
-          <span class="artist-rank">${i + 1}</span>
-          <span class="artist-name">${name}</span>
-          <span class="artist-count">${count}장</span>
+        <div class="artist-poster-row">
+          <span class="artist-poster-num">${String(i + 1).padStart(2, '0')}</span>
+          <span class="artist-poster-name">${escHtml(name)}</span>
+          <span class="artist-poster-count">${count}</span>
         </div>
       `).join('');
     }
 
-    function renderRecentAlbums(albums) {
-      document.getElementById('recent-albums').innerHTML = albums.map(a => `
-        <div class="recent-album">
-          <img src="${a.cover_url || ''}" alt="${a.title}" onerror="this.style.background='#222'">
-          <div class="recent-album-title">${a.title}</div>
-          <div class="recent-album-artist">${a.artist}</div>
-        </div>
-      `).join('');
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    // 진입 시 기존 데이터 바로 로드
     loadDashboard();
   </script>
 </body>

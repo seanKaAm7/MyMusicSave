@@ -3,22 +3,225 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>앨범 — ARCHIVE</title>
-  <meta name="description" content="앨범 상세 정보">
+  <title>앨범 — MyMusicSave</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .album-page-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .album-page-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .album-page-back {
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: inherit;
+    }
+    .album-page-back:hover { color: var(--text); }
+    .album-page-main { padding-top: 80px; }
+    .album-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+    .poster-track-duration {
+      margin-left: auto;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+  </style>
 </head>
 <body>
-  <header class="site-header" id="site-header"></header>
-  <main class="page-wrapper">
-    <div class="album-poster-wrapper">
+  <header class="album-page-header">
+    <a class="album-page-logo" href="/dashboard.html">MYMUSICSAVE</a>
+    <button class="album-page-back" onclick="history.back()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      뒤로
+    </button>
+  </header>
+
+  <main class="album-page-main">
+    <div class="album-loading" id="loading">LOADING...</div>
+    <div class="album-poster-wrapper" id="poster-wrapper" style="display:none">
       <div class="album-poster" id="album-poster"></div>
     </div>
-    <div class="detail-tabs-wrapper">
-      <nav class="tab-nav" id="tab-nav"></nav>
-      <div id="tab-panels"></div>
-    </div>
   </main>
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+
+  <script>
+    const SUPABASE_URL = 'https://aanldsddamkjrziefhuf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhbmxkc2RkYW1ranJ6aWVmaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzg3NDYsImV4cCI6MjA4OTgxNDc0Nn0.N7uKqkjxrAtjvumwW-W5VH5qxCE4RtxKymNWfP097iY';
+
+    const params = new URLSearchParams(location.search);
+    const spotifyId = params.get('id');
+
+    if (!spotifyId) {
+      document.getElementById('loading').textContent = '앨범 ID가 없습니다.';
+    } else {
+      initAlbum();
+    }
+
+    async function initAlbum() {
+      // 1. Supabase에서 기본 데이터
+      const user = JSON.parse(localStorage.getItem('mms_user') || 'null');
+      let album = null;
+
+      if (user) {
+        const userRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/users?spotify_id=eq.${user.spotify_id}&select=id`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+        );
+        const users = await userRes.json();
+        if (users.length) {
+          const albumRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/albums?user_id=eq.${users[0].id}&spotify_album_id=eq.${spotifyId}&select=*`,
+            { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+          );
+          const albums = await albumRes.json();
+          if (albums.length) album = albums[0];
+        }
+      }
+
+      // 2. Spotify 함수로 트랙/상세 데이터 (캐시 우선)
+      const cacheKey = `mms_spotify_${spotifyId}`;
+      let spotifyData = null;
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const { data, ts } = JSON.parse(cached);
+          if (Date.now() - ts < 86400000) spotifyData = data;
+        }
+        if (!spotifyData) {
+          const sRes = await fetch(`/.netlify/functions/spotify?id=${spotifyId}`);
+          const sData = await sRes.json();
+          if (sData.ok) {
+            spotifyData = sData.album;
+            localStorage.setItem(cacheKey, JSON.stringify({ data: spotifyData, ts: Date.now() }));
+          }
+        }
+      } catch {}
+
+      renderPoster(album, spotifyData);
+    }
+
+    function renderPoster(album, spotify) {
+      const title = spotify?.title || album?.title || '—';
+      const artist = spotify?.artist || album?.artist || '—';
+      const year = album?.year || '';
+      const coverUrl = spotify?.imageUrl || album?.cover_url || '';
+      const releaseDate = spotify?.releaseDate || (album?.year ? String(album.year) : '—');
+      const duration = spotify?.duration || '—';
+      const label = spotify?.label || '—';
+      const tracks = spotify?.tracks || [];
+      const spotifyUrl = spotify?.spotifyUrl || null;
+
+      document.title = `${title} — MyMusicSave`;
+
+      const half = Math.ceil(tracks.length / 2);
+      const col1 = tracks.slice(0, half);
+      const col2 = tracks.slice(half);
+
+      const trackHtml = (list) => list.map(t => `
+        <div class="poster-track-row">
+          <span class="poster-track-no">${t.no}.</span>
+          <span class="poster-track-title">${t.title}${t.feat?.length ? `<span class="poster-track-feat"> ft. ${t.feat.join(', ')}</span>` : ''}</span>
+          <span class="poster-track-duration">${t.duration}</span>
+        </div>
+      `).join('');
+
+      const poster = document.getElementById('album-poster');
+      poster.style.setProperty('--poster-bg', '#111');
+
+      poster.innerHTML = `
+        <div class="album-poster-deco"></div>
+        <div class="poster-top">
+          <div class="poster-year">${year}</div>
+          <div class="poster-edition">${album?.genre?.toUpperCase() || ''}</div>
+        </div>
+        <div class="poster-title-block">
+          <div class="poster-title">${title}</div>
+        </div>
+        <div class="poster-body">
+          <div class="poster-art-col">
+            <div class="poster-art">
+              <div class="poster-art-inner" style="background:#1a1a1a">
+                ${coverUrl
+                  ? `<img src="${coverUrl}" alt="${title}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:4px;">`
+                  : `<div class="art-watermark">${title}</div>`
+                }
+              </div>
+            </div>
+          </div>
+          <div class="poster-info-col">
+            <div>
+              <div class="poster-tracks-header">Track Listing</div>
+              ${tracks.length
+                ? `<div class="poster-tracks-grid">
+                    <div>${trackHtml(col1)}</div>
+                    <div>${trackHtml(col2)}</div>
+                  </div>`
+                : `<div style="color:var(--text-dim);font-size:0.8rem;padding:1rem 0">트랙 정보 없음</div>`
+              }
+            </div>
+            <div class="poster-artist-block">
+              <div class="poster-artist-label">Artist</div>
+              <div class="poster-artist-name">${artist}</div>
+              <div class="poster-release-block">
+                <div class="poster-release-item">
+                  <span class="poster-release-label">Out Now</span>
+                  <span class="poster-release-value">${releaseDate}</span>
+                </div>
+                <div class="poster-release-item">
+                  <span class="poster-release-label">Runtime</span>
+                  <span class="poster-release-value">${duration}</span>
+                </div>
+                <div class="poster-release-item">
+                  <span class="poster-release-label">Released By</span>
+                  <span class="poster-release-value">${label}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="poster-bottom">
+          <span class="poster-label-badge">${label}</span>
+          <span class="poster-duration-badge">${duration}</span>
+          ${tracks.length ? `<span class="poster-label-badge">${tracks.length} tracks</span>` : ''}
+          ${spotifyUrl ? `<a href="${spotifyUrl}" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid #1DB954;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;">Spotify</a>` : ''}
+        </div>
+      `;
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('poster-wrapper').style.display = 'block';
+    }
+  </script>
 </body>
 </html>

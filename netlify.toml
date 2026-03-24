@@ -3,3 +3,6 @@
 
 [functions."sync"]
   timeout = 26
+
+[functions."geocode"]
+  timeout = 26
