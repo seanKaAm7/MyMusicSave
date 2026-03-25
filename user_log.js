@@ -1,5 +1,54 @@
 /*
 -----------------------------------------
+[Log #18] [2026-03-25]
+ * 사용자: 프로필 + 설정 페이지 요청 — 한 페이지로, 심플하게
+ * 작업: (1) profile.html 신규 작성 — Spotify 프로필 사진(없으면 이니셜 fallback), 이름, 앨범/아티스트/장르 통계, Last.fm 아이디 설정, ListenBrainz 아이디 설정, 로그아웃. (2) dashboard.html 헤더에 프로필 링크 추가.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
+[Log #17] [2026-03-25]
+ * 사용자: 추천 퀄리티 개선 요청 — 트랙 탭이 보관함 앨범 트랙을 그대로 뽑아주는 문제, 다양성 부족
+ * 작업: recommend.js 전면 정리. (1) Spotify /v1/recommendations 경로 완전 제거 — Development Mode 차단으로 항상 실패하므로 폴백을 메인으로 변경. (2) 배치 아티스트 조회(/v1/artists?ids=) → 개별 호출(/v1/artists/{id})로 교체 — 2026.02 API 개편으로 배치 엔드포인트 삭제됨. (3) 트랙 탭 보관함 앨범 필터 추가 — 기존에 필터 없어서 보관함 앨범 트랙이 그대로 추천됐던 버그 수정. (4) 다양성 강제 — 아티스트당 앨범 1개, 트랙 2개 제한. (5) 탐색 범위 확대 — 시드 6개, 후보 25명 → 15명 ID 변환, 최대 15명 인기곡 조회.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
+[Log #16] [2026-03-25]
+ * 사용자: 일단 오래걸려도 돼. 노트 파일? md? 일단 프로젝트 요약 파일, 로그 파일, 패치노트 파일 모두 자세하게 최신화 해놔. 특히 프로젝트 요약 파일. 프로젝트 구조도 써넣으면 좋겠는데 요약 파일에 안되면 새롭게 만들어서 써놔도 돼. 그리고 새로운 채팅에서 읽어야 하는 파일을 알려줘
+ * 작업: (1) START_HERE.md 전면 재작성 — 현재 구현 상태 기준으로 전면 업데이트. 기술 스택, 페이지 구성, Netlify Functions 상세, 추천 엔진 파이프라인, 중요 기술적 제약사항(Spotify 추천 API 차단 등), 새 세션 파일 읽기 순서 포함. (2) PROJECT_STRUCTURE.md 신규 생성 — 전체 파일 트리, 페이지별 상세 설명, Functions 입출력, 데이터 흐름도, 환경변수 목록, 장르 분류 체계, 알려진 이슈 목록. (3) PATCH_NOTES.js v0.8 내용 수정 — Spotify /v1/recommendations가 실제로 차단되어 폴백 운영 중임을 정확하게 반영. (4) 새 세션 읽기 순서: START_HERE.md → PROJECT_STRUCTURE.md → user_log.js 상단 15줄 → PATCH_NOTES.js 상단.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
+[Log #15] [2026-03-25]
+ * 사용자: 아니 그동안 스포티파이 추천 api 안썼어??? lastfm 기록은 그냥 데이터일 뿐이라니까? 추천 알고리즘을 last.fm껄로 하면 당연히 안되지.
+ * 작업: recommend.js 전면 재설계 — Last.fm은 시드 아티스트 이름 제공(데이터 소스)으로만 사용, 추천 알고리즘은 Spotify /v1/recommendations API로 전환. (1) Last.fm user.getTopArtists → 아티스트 이름 목록 취득. (2) Spotify search로 아티스트 이름 → ID 변환(최대 8콜). (3) Spotify /v1/recommendations?seed_artists=...&limit=100 → 추천 트랙 100개. (4) Spotify /v1/artists 배치 조회(1콜)로 아티스트 이미지 및 장르(genres[]) 취득. (5) 트랙 100개에서 앨범/아티스트/트랙 동시 추출. 총 API 호출 수 55콜 → 14콜로 감소.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
+[Log #14] [2026-03-25]
+ * 사용자: api가 왜 그렇게 많은거야? 너 한번 정리 할래?
+ * 작업: recommend.js API 호출 구조 분석 및 최적화. (1) 앨범 검색(30콜) + 아티스트 검색(20콜) → Spotify type=album,artist 통합 검색(25콜)으로 절반 절약. (2) 장르 조회를 후보 전체 → 앨범 필터 통과 후 실제 필요한 것만 호출. (3) 앨범 설명 조회 + 트랙 검색을 병렬 처리로 변경. (4) netlify.toml에 recommend 함수 timeout=26 추가.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
+[Log #13] [2026-03-25]
+ * 사용자: 추천이 안떠.. 왜 이러지
+ * 작업: Netlify 함수 타임아웃 초과 원인 파악 — 병렬 API 호출 158콜로 기본 10초 초과. (1) netlify.toml에 recommend timeout=26 추가. (2) 앨범/장르 조회 60→30콜, 아티스트 정보 30→20콜, 트랙 씨드 8→6명으로 축소. (3) 앨범 설명 + 트랙 검색 순차 → 병렬 변경.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
+[Log #12] [2026-03-25]
+ * 사용자: Last.fm 청취기록 기반 추천 연동(SeanKa0216). 3탭 추천 UI 요청 — 앨범/아티스트/트랙. Based on 섹션 제거.
+ * 작업: (1) recommend.js — lastfm_username 파라미터 수신, getLastFmTopArtists 폴백 체인 1순위 추가(Spotify Top Artists 없을 시 Last.fm → 보관함 순). (2) recommend.html — lastfm_username을 localStorage에서 읽어 POST body에 포함. Based on 섹션 및 CSS 제거. (3) 3탭 UI 구현 — ALBUMS/ARTISTS/TRACKS 탭 바(배지 카운트 포함), 탭 전환 JS, renderAlbums/renderArtists/renderTracks 함수 분리. (4) recommend.js — searchArtistInfo, getArtistTopTracks, searchTrack 함수 추가. 앨범+아티스트 통합 검색(type=album,artist), 시드 아티스트 인기 트랙 → Spotify 검색.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
 [Log #11] [2026-03-24]
  * 사용자: 추천 기능 구현 요청 — 앨범 추천
  * 작업: (1) netlify/functions/recommend.js 작성 — Spotify Top Artists → Last.fm getSimilar → Spotify Search → 보관함 필터링 → 최대 20개 추천. (2) recommend.html 작성 — 추천 앨범 그리드, Based on 표시, 로딩 애니메이션, Spotify 링크. (3) Spotify Top Artists가 비어있을 때 Supabase 보관함 최다 아티스트로 폴백. (4) index.html scope에 user-top-read 추가. (5) dashboard.html 헤더에 추천 링크 추가.

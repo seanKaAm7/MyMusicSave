@@ -203,6 +203,94 @@
       text-overflow: ellipsis;
     }
 
+    /* ── EDIT MODE ── */
+    .btn-edit-mode {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      padding: 0.25rem 0.7rem;
+      cursor: pointer;
+    }
+    .btn-edit-mode:hover { color: var(--text); border-color: var(--text-dim); }
+    .btn-edit-mode.active { background: var(--text); color: #000; border-color: var(--text); }
+
+    .cover-item.selected::after {
+      content: '✓';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      color: #fff;
+      border: 2px solid #fff;
+    }
+    .cover-item.selected img { transform: scale(1.06); }
+
+    /* 플로팅 바 */
+    .bulk-bar {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a1a;
+      border: 1px solid var(--border);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      z-index: 200;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      min-width: 420px;
+    }
+    .bulk-bar-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+      letter-spacing: 0.04em;
+    }
+    .bulk-bar-select {
+      flex: 1;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      padding: 0.35rem 0.6rem;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .bulk-bar-apply {
+      background: var(--text);
+      color: #000;
+      border: none;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .bulk-bar-apply:hover { opacity: 0.85; }
+    .bulk-bar-apply:disabled { opacity: 0.35; cursor: not-allowed; }
+    .bulk-bar-cancel {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      cursor: pointer;
+      padding: 0;
+      white-space: nowrap;
+    }
+    .bulk-bar-cancel:hover { color: var(--text); }
+
     /* ── BOTTOM SPLIT ── */
     .dash-bottom {
       display: grid;
@@ -324,6 +412,7 @@
       <a class="btn-outline" href="/library.html">라이브러리</a>
       <a class="btn-outline" href="/map.html">뮤직맵</a>
       <a class="btn-outline" href="/recommend.html">추천</a>
+      <a class="btn-outline" href="/profile.html">프로필</a>
       <button class="btn-outline" id="btn-logout">로그아웃</button>
     </div>
   </header>
@@ -348,9 +437,12 @@
   </section>
 
   <section class="dash-section">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.5rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
       <div class="dash-section-label" style="margin-bottom:0" id="albums-label">ALBUMS</div>
-      <span id="albums-count" style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text-muted)"></span>
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <span id="albums-count" style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text-muted)"></span>
+        <button class="btn-edit-mode" id="btn-edit-mode">편집</button>
+      </div>
     </div>
     <div class="cover-grid" id="cover-grid">
       <span style="color:var(--text-muted);font-size:.85rem;font-family:'Space Mono',monospace;grid-column:1/-1">동기화 후 표시됩니다</span>
@@ -368,6 +460,28 @@
         <span style="color:var(--text-muted);font-size:.85rem;font-family:'Space Mono',monospace">동기화 후 표시됩니다</span>
       </div>
     </div>
+  </div>
+
+  <!-- 일괄 장르 변경 플로팅 바 -->
+  <div class="bulk-bar" id="bulk-bar" style="display:none">
+    <span class="bulk-bar-count" id="bulk-count">0장 선택됨</span>
+    <select class="bulk-bar-select" id="bulk-genre">
+      <option value="">장르 선택...</option>
+      <option value="hip-hop">HIP-HOP</option>
+      <option value="rnb">R&amp;B / SOUL</option>
+      <option value="kpop">K-POP</option>
+      <option value="pop">POP</option>
+      <option value="rock">ROCK</option>
+      <option value="alternative">ALTERNATIVE</option>
+      <option value="electronic">ELECTRONIC</option>
+      <option value="jazz">JAZZ</option>
+      <option value="classical">CLASSICAL</option>
+      <option value="soul">FUNK / SOUL</option>
+      <option value="soundtrack">SOUNDTRACK</option>
+      <option value="other">OTHER</option>
+    </select>
+    <button class="bulk-bar-apply" id="bulk-apply">적용</button>
+    <button class="bulk-bar-cancel" id="bulk-cancel">취소</button>
   </div>
 
   <footer class="dash-footer">
@@ -549,8 +663,11 @@
         grid.innerHTML = `<span style="color:var(--text-muted);font-size:.85rem;font-family:'Space Mono',monospace;grid-column:1/-1">앨범 없음</span>`;
         return;
       }
+      window._lastFilteredAlbums = filtered;
       grid.innerHTML = filtered.map(a => `
-        <div class="cover-item" onclick="location.href='/album.html?id=${a.spotify_album_id}'">
+        <div class="cover-item${editMode && selectedIds.has(a.spotify_album_id) ? ' selected' : ''}"
+          data-id="${a.spotify_album_id}"
+          onclick="editMode ? toggleSelect('${a.spotify_album_id}', this) : location.href='/album.html?id=${a.spotify_album_id}'">
           <img src="${a.cover_url || ''}" alt="${escHtml(a.title)}" onerror="this.style.display='none'">
           <div class="cover-overlay">
             <div class="cover-overlay-title">${escHtml(a.title)}</div>
@@ -614,6 +731,102 @@
 
     function escHtml(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── 일괄 장르 편집 ──────────────────────────────────
+    let editMode = false;
+    let selectedIds = new Set(); // spotify_album_id
+
+    const btnEditMode = document.getElementById('btn-edit-mode');
+    const bulkBar = document.getElementById('bulk-bar');
+    const bulkCount = document.getElementById('bulk-count');
+    const bulkApply = document.getElementById('bulk-apply');
+    const bulkCancel = document.getElementById('bulk-cancel');
+
+    btnEditMode.addEventListener('click', () => {
+      editMode = !editMode;
+      selectedIds.clear();
+      btnEditMode.textContent = editMode ? '완료' : '편집';
+      btnEditMode.classList.toggle('active', editMode);
+      bulkBar.style.display = editMode ? 'flex' : 'none';
+      updateBulkBar();
+      // 그리드 재렌더 (클릭 동작 바꿔야 하므로)
+      renderCoverGrid(window._lastFilteredAlbums || []);
+    });
+
+    bulkCancel.addEventListener('click', () => {
+      editMode = false;
+      selectedIds.clear();
+      btnEditMode.textContent = '편집';
+      btnEditMode.classList.remove('active');
+      bulkBar.style.display = 'none';
+      renderCoverGrid(window._lastFilteredAlbums || []);
+    });
+
+    bulkApply.addEventListener('click', async () => {
+      const genre = document.getElementById('bulk-genre').value;
+      if (!genre) { alert('장르를 선택해주세요.'); return; }
+      if (!selectedIds.size) return;
+
+      bulkApply.disabled = true;
+      bulkApply.textContent = '저장 중...';
+
+      try {
+        const userRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/users?spotify_id=eq.${user.spotify_id}&select=id`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+        );
+        const users = await userRes.json();
+        if (!users.length) throw new Error('유저 없음');
+        const userId = users[0].id;
+
+        // 선택된 앨범 하나씩 PATCH (Supabase REST는 IN 필터 PATCH 지원 안 함)
+        await Promise.all([...selectedIds].map(albumId =>
+          fetch(`${SUPABASE_URL}/rest/v1/albums?user_id=eq.${userId}&spotify_album_id=eq.${albumId}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_KEY,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ genre })
+          })
+        ));
+
+        // 로컬 데이터 업데이트
+        allAlbums.forEach(a => {
+          if (selectedIds.has(a.spotify_album_id)) a.genre = genre;
+        });
+
+        selectedIds.clear();
+        editMode = false;
+        btnEditMode.textContent = '편집';
+        btnEditMode.classList.remove('active');
+        bulkBar.style.display = 'none';
+        renderCoverGrid(window._lastFilteredAlbums || []);
+        renderGenreTypo(allAlbums);
+
+      } catch (e) {
+        alert('오류: ' + e.message);
+      } finally {
+        bulkApply.disabled = false;
+        bulkApply.textContent = '적용';
+      }
+    });
+
+    function updateBulkBar() {
+      bulkCount.textContent = `${selectedIds.size}장 선택됨`;
+    }
+
+    function toggleSelect(albumId, el) {
+      if (selectedIds.has(albumId)) {
+        selectedIds.delete(albumId);
+        el.classList.remove('selected');
+      } else {
+        selectedIds.add(albumId);
+        el.classList.add('selected');
+      }
+      updateBulkBar();
     }
 
     loadDashboard();

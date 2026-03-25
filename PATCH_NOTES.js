@@ -1,5 +1,20 @@
 /*
 ---------
+[2026년 03월 25일 — v0.8]
+ * 추천 3탭 UI 구현 — ALBUMS / ARTISTS / TRACKS 탭 전환, 각 탭 결과 수 배지 표시
+ * 아티스트 탭 — Spotify 아티스트 사진 + 장르 배지, Spotify 링크
+ * 트랙 탭 — 앨범 커버 + 재생시간 + 앨범명, Spotify 링크
+ * 추천 파이프라인 재설계 — Last.fm SeanKa0216 청취 기록을 시드로 사용
+ * 추천 경로 1: Spotify /v1/recommendations 시도 (Development Mode 차단으로 항상 실패)
+ * 추천 경로 2 폴백: Last.fm similar 발견 → Spotify /v1/artists/{id}/top-tracks 조회
+ * Spotify /v1/artists 배치 조회로 아티스트 이미지 + 장르 취득
+ * Netlify recommend 함수 타임아웃 26초로 설정
+ * Based on 섹션 제거
+ * 현재 상태: 추천 결과 미출력 — 폴백 파이프라인 디버깅 필요
+---------
+*/
+/*
+---------
 [2026년 03월 24일 — v0.7]
  * 추천 기능 (recommend.html) 신규 구현
  * Spotify Top Artists → Last.fm getSimilar → Spotify Search 파이프라인

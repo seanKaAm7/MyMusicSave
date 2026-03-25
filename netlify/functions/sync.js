@@ -127,21 +127,31 @@ exports.handler = async (event) => {
     spotifyUrl = data.next || null;
   }
 
-  // 3. 아티스트 이름으로 Last.fm 장르 조회
+  // 3. 기존에 저장된 장르 가져오기 (수동 설정 보존용)
+  const existingRes = await fetch(
+    `${supabaseUrl}/rest/v1/albums?user_id=eq.${userId}&select=spotify_album_id,genre`,
+    { headers: { 'apikey': supabaseKey, 'Authorization': 'Bearer ' + supabaseKey } }
+  );
+  const existingAlbums = await existingRes.json();
+  const existingGenreMap = {};
+  existingAlbums.forEach(a => { existingGenreMap[a.spotify_album_id] = a.genre; });
+
+  // 4. 아티스트 이름으로 Last.fm 장르 조회
   const artistNames = allItems.map(item => item.album.artists?.[0]?.name).filter(Boolean);
   const genreMap = await getArtistGenreMap(artistNames);
 
-  // 4. 저장용 배열 구성
+  // 5. 저장용 배열 구성 — 기존 장르 있으면 유지, 새 앨범만 Last.fm 분류 적용
   const toUpsert = allItems.map(item => {
     const album = item.album;
     const artistName = album.artists?.[0]?.name || '';
     const tags = genreMap[artistName] || [];
+    const existingGenre = existingGenreMap[album.id];
     return {
       user_id: userId,
       spotify_album_id: album.id,
       title: album.name,
       artist: artistName,
-      genre: classifyGenre(tags),
+      genre: existingGenre || classifyGenre(tags),
       year: parseInt(album.release_date?.slice(0, 4)) || null,
       cover_url: album.images?.[0]?.url || null,
       added_at: item.added_at,

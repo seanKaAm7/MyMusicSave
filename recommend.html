@@ -6,6 +6,7 @@
   <title>추천 — MyMusicSave</title>
   <link rel="stylesheet" href="styles.css">
   <style>
+    /* ── 헤더 ─────────────────────────────────────────── */
     .rec-header {
       display: flex;
       align-items: center;
@@ -41,6 +42,7 @@
     }
     .btn-back:hover { color: var(--text); border-color: var(--text); }
 
+    /* ── 히어로 ───────────────────────────────────────── */
     .rec-hero {
       padding: 3rem 2.5rem 2rem;
       border-bottom: 1px solid var(--border);
@@ -80,34 +82,51 @@
     .btn-generate:hover { opacity: 0.85; }
     .btn-generate:disabled { opacity: 0.35; cursor: not-allowed; }
 
-    .rec-based-on {
-      margin-top: 1rem;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
+    /* ── 탭 바 ────────────────────────────────────────── */
+    .rec-tabs {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      padding: 0 2.5rem;
+    }
+    .rec-tab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
       color: var(--text-muted);
-      letter-spacing: 0.04em;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.88rem;
+      letter-spacing: 0.14em;
+      padding: 0.9rem 1.2rem 0.7rem;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      margin-bottom: -1px;
     }
-    .rec-based-on span {
-      color: var(--text-dim);
+    .rec-tab:hover { color: var(--text-dim); }
+    .rec-tab.active { color: var(--text); border-bottom-color: var(--text); }
+    .rec-tab-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.55rem;
+      color: var(--text-muted);
+      margin-left: 0.3rem;
+      vertical-align: middle;
     }
+    .rec-tab.active .rec-tab-badge { color: var(--text-dim); }
 
+    /* ── 콘텐츠 영역 ──────────────────────────────────── */
     .rec-main {
       padding: 2rem 2.5rem;
     }
-    .rec-section-label {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 0.72rem;
-      letter-spacing: 0.2em;
-      color: var(--text-muted);
-      margin-bottom: 1.5rem;
-    }
+
+    /* ── 공통 그리드 ──────────────────────────────────── */
     .rec-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 1.2rem;
     }
 
-    /* 앨범 카드 */
+    /* ── 앨범 카드 ────────────────────────────────────── */
     .rec-card {
       cursor: pointer;
       text-decoration: none;
@@ -140,11 +159,7 @@
       transition: opacity 0.2s;
     }
     .rec-card:hover .rec-card-overlay { opacity: 1; }
-    .rec-card-overlay svg {
-      width: 28px;
-      height: 28px;
-      fill: #1DB954;
-    }
+    .rec-card-overlay svg { width: 28px; height: 28px; fill: #1DB954; }
     .rec-card-title {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 0.88rem;
@@ -162,14 +177,109 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .rec-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.2rem;
+    }
     .rec-card-year {
       font-family: 'Space Mono', monospace;
       font-size: 0.6rem;
       color: var(--text-muted);
-      margin-top: 0.1rem;
+    }
+    .rec-card-genre {
+      font-size: 0.55rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 0.1rem 0.3rem;
     }
 
-    /* 상태 메시지 */
+    /* ── 아티스트 카드 (앨범 카드와 동일 구조) ─────────── */
+    .artist-card-img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(0.15);
+      transition: transform 0.25s ease, filter 0.25s;
+    }
+    .rec-card:hover .artist-card-img {
+      transform: scale(1.05);
+      filter: grayscale(0);
+    }
+
+    /* ── 트랙 카드 ────────────────────────────────────── */
+    .rec-card-sub {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 0.1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0.7;
+    }
+
+    /* ── 호버 미리보기 패널 ───────────────────────────── */
+    .rec-preview {
+      position: fixed;
+      background: #141414;
+      border: 1px solid var(--border);
+      padding: 1rem;
+      width: 220px;
+      z-index: 300;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .rec-preview.visible { opacity: 1; transform: translateY(0); }
+    .rec-preview-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.06em;
+      line-height: 1.2;
+      margin-bottom: 0.25rem;
+    }
+    .rec-preview-artist {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+    .rec-preview-meta {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .rec-preview-year {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+    }
+    .rec-preview-genre {
+      font-size: 0.55rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 0.1rem 0.3rem;
+    }
+    .rec-preview-desc {
+      margin-top: 0.6rem;
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+      letter-spacing: 0.01em;
+    }
+    .rec-preview-hint {
+      margin-top: 0.6rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      color: var(--text-muted);
+    }
+
+    /* ── 상태 메시지 ──────────────────────────────────── */
     .rec-status {
       font-family: 'Space Mono', monospace;
       font-size: 0.72rem;
@@ -177,6 +287,7 @@
       padding: 3rem 0;
       text-align: center;
       letter-spacing: 0.04em;
+      grid-column: 1 / -1;
     }
     .rec-loading-bar {
       width: 180px;
@@ -202,7 +313,7 @@
     }
 
     @media (max-width: 700px) {
-      .rec-header, .rec-hero, .rec-main { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .rec-header, .rec-hero, .rec-main, .rec-tabs { padding-left: 1.5rem; padding-right: 1.5rem; }
       .rec-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.8rem; }
     }
   </style>
@@ -217,15 +328,49 @@
   <div class="rec-hero">
     <div class="rec-hero-label">DISCOVER</div>
     <div class="rec-hero-title">FOR YOU</div>
-    <div class="rec-hero-sub">최근 6개월 청취 기록을 분석해 아직 보관함에 없는 앨범을 추천합니다.</div>
+    <div class="rec-hero-sub">Last.fm 청취 기록을 분석해 아직 보관함에 없는 음악을 추천합니다.</div>
     <button class="btn-generate" id="btn-generate">추천 받기</button>
-    <div class="rec-based-on" id="based-on"></div>
+  </div>
+
+  <!-- 탭 바 -->
+  <div class="rec-tabs" id="rec-tabs" style="display:none">
+    <button class="rec-tab active" data-tab="albums">
+      ALBUMS<span class="rec-tab-badge" id="badge-albums"></span>
+    </button>
+    <button class="rec-tab" data-tab="artists">
+      ARTISTS<span class="rec-tab-badge" id="badge-artists"></span>
+    </button>
+    <button class="rec-tab" data-tab="tracks">
+      TRACKS<span class="rec-tab-badge" id="badge-tracks"></span>
+    </button>
+  </div>
+
+  <!-- 호버 미리보기 패널 -->
+  <div class="rec-preview" id="rec-preview">
+    <div class="rec-preview-title" id="preview-title"></div>
+    <div class="rec-preview-artist" id="preview-artist"></div>
+    <div class="rec-preview-meta">
+      <span class="rec-preview-year" id="preview-year"></span>
+      <span class="rec-preview-genre" id="preview-genre" style="display:none"></span>
+    </div>
+    <div class="rec-preview-desc" id="preview-desc"></div>
+    <div class="rec-preview-hint">↗ 클릭하면 Spotify에서 열기</div>
   </div>
 
   <main class="rec-main">
-    <div class="rec-section-label" id="rec-label" style="display:none">RECOMMENDED ALBUMS</div>
-    <div class="rec-grid" id="rec-grid">
-      <div class="rec-status">추천 받기 버튼을 눌러 시작하세요.</div>
+    <!-- 앨범 탭 -->
+    <div id="tab-albums">
+      <div class="rec-grid" id="rec-grid">
+        <div class="rec-status">추천 받기 버튼을 눌러 시작하세요.</div>
+      </div>
+    </div>
+    <!-- 아티스트 탭 -->
+    <div id="tab-artists" style="display:none">
+      <div class="rec-grid" id="artist-grid"></div>
+    </div>
+    <!-- 트랙 탭 -->
+    <div id="tab-tracks" style="display:none">
+      <div class="rec-grid" id="track-grid"></div>
     </div>
   </main>
 
@@ -234,70 +379,217 @@
     const user = JSON.parse(localStorage.getItem('mms_user') || 'null');
     if (!token || !user) window.location.href = '/';
 
+    const SPOTIFY_SVG = `<svg viewBox="0 0 24 24" width="28" height="28" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>`;
+
     function escHtml(str) {
       return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    function fmtDuration(ms) {
+      if (!ms) return '';
+      const s = Math.round(ms / 1000);
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    // ── 탭 전환 ──────────────────────────────────────────
+    const tabs = ['albums', 'artists', 'tracks'];
+    document.querySelectorAll('.rec-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+        document.querySelectorAll('.rec-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        tabs.forEach(t => {
+          document.getElementById('tab-' + t).style.display = t === target ? '' : 'none';
+        });
+        bindPreview();
+      });
+    });
+
+    // ── 렌더 함수들 ───────────────────────────────────────
+    function renderAlbums(recs) {
+      const grid = document.getElementById('rec-grid');
+      if (!recs.length) {
+        grid.innerHTML = `<div class="rec-status">추천할 앨범을 찾지 못했습니다.</div>`;
+        return;
+      }
+      grid.innerHTML = recs.map(r => `
+        <a class="rec-card"
+          href="${escHtml(r.spotify_url || '#')}"
+          target="_blank" rel="noopener"
+          data-title="${escHtml(r.title)}"
+          data-artist="${escHtml(r.artist)}"
+          data-year="${r.year || ''}"
+          data-genre="${escHtml(r.genre || '')}"
+          data-desc="${escHtml(r.description || '')}">
+          <div class="rec-card-art">
+            ${r.cover_url ? `<img src="${escHtml(r.cover_url)}" alt="${escHtml(r.title)}">` : ''}
+            <div class="rec-card-overlay">${SPOTIFY_SVG}</div>
+          </div>
+          <div class="rec-card-title">${escHtml(r.title)}</div>
+          <div class="rec-card-artist">${escHtml(r.artist)}</div>
+          <div class="rec-card-meta">
+            ${r.year ? `<span class="rec-card-year">${r.year}</span>` : ''}
+            ${r.genre ? `<span class="rec-card-genre">${escHtml(r.genre)}</span>` : ''}
+          </div>
+        </a>
+      `).join('');
+      document.getElementById('badge-albums').textContent = recs.length;
+    }
+
+    function renderArtists(artists) {
+      const grid = document.getElementById('artist-grid');
+      if (!artists.length) {
+        grid.innerHTML = `<div class="rec-status">추천할 아티스트를 찾지 못했습니다.</div>`;
+        return;
+      }
+      grid.innerHTML = artists.map(a => `
+        <a class="rec-card"
+          href="${escHtml(a.spotify_url || '#')}"
+          target="_blank" rel="noopener"
+          data-title="${escHtml(a.name)}"
+          data-artist=""
+          data-year=""
+          data-genre="${escHtml(a.genre || '')}"
+          data-desc="">
+          <div class="rec-card-art">
+            ${a.image_url
+              ? `<img class="artist-card-img" src="${escHtml(a.image_url)}" alt="${escHtml(a.name)}">`
+              : ''}
+            <div class="rec-card-overlay">${SPOTIFY_SVG}</div>
+          </div>
+          <div class="rec-card-title">${escHtml(a.name)}</div>
+          <div class="rec-card-meta">
+            ${a.genre ? `<span class="rec-card-genre">${escHtml(a.genre)}</span>` : ''}
+          </div>
+        </a>
+      `).join('');
+      document.getElementById('badge-artists').textContent = artists.length;
+    }
+
+    function renderTracks(tracks) {
+      const grid = document.getElementById('track-grid');
+      if (!tracks.length) {
+        grid.innerHTML = `<div class="rec-status">추천할 트랙을 찾지 못했습니다.</div>`;
+        return;
+      }
+      grid.innerHTML = tracks.map(t => `
+        <a class="rec-card"
+          href="${escHtml(t.spotify_url || '#')}"
+          target="_blank" rel="noopener"
+          data-title="${escHtml(t.title)}"
+          data-artist="${escHtml(t.artist)}"
+          data-year=""
+          data-genre=""
+          data-desc="${escHtml(t.album || '')}">
+          <div class="rec-card-art">
+            ${t.cover_url ? `<img src="${escHtml(t.cover_url)}" alt="${escHtml(t.title)}">` : ''}
+            <div class="rec-card-overlay">${SPOTIFY_SVG}</div>
+          </div>
+          <div class="rec-card-title">${escHtml(t.title)}</div>
+          <div class="rec-card-artist">${escHtml(t.artist)}</div>
+          <div class="rec-card-meta">
+            ${t.duration_ms ? `<span class="rec-card-year">${fmtDuration(t.duration_ms)}</span>` : ''}
+          </div>
+          ${t.album ? `<div class="rec-card-sub">${escHtml(t.album)}</div>` : ''}
+        </a>
+      `).join('');
+      document.getElementById('badge-tracks').textContent = tracks.length;
+    }
+
+    // ── 호버 미리보기 ─────────────────────────────────────
+    function bindPreview() {
+      const preview = document.getElementById('rec-preview');
+      const pTitle = document.getElementById('preview-title');
+      const pArtist = document.getElementById('preview-artist');
+      const pYear = document.getElementById('preview-year');
+      const pGenre = document.getElementById('preview-genre');
+      const pDesc = document.getElementById('preview-desc');
+      let hideTimer;
+
+      document.querySelectorAll('.rec-card').forEach(card => {
+        // 중복 바인딩 방지
+        if (card._previewBound) return;
+        card._previewBound = true;
+
+        card.addEventListener('mouseenter', (e) => {
+          clearTimeout(hideTimer);
+          pTitle.textContent = card.dataset.title || '';
+          pArtist.textContent = card.dataset.artist || '';
+          pYear.textContent = card.dataset.year || '';
+          if (card.dataset.genre) {
+            pGenre.textContent = card.dataset.genre;
+            pGenre.style.display = '';
+          } else {
+            pGenre.style.display = 'none';
+          }
+          // 트랙은 desc에 앨범명 저장
+          pDesc.textContent = card.dataset.desc || '';
+          positionPreview(e);
+          preview.classList.add('visible');
+        });
+
+        card.addEventListener('mousemove', positionPreview);
+
+        card.addEventListener('mouseleave', () => {
+          hideTimer = setTimeout(() => preview.classList.remove('visible'), 80);
+        });
+      });
+
+      function positionPreview(e) {
+        const pw = 220, margin = 16;
+        let left = e.clientX + margin;
+        if (left + pw > window.innerWidth) left = e.clientX - pw - margin;
+        let top = e.clientY - 60;
+        if (top + 320 > window.innerHeight) top = window.innerHeight - 330;
+        if (top < 10) top = 10;
+        preview.style.left = left + 'px';
+        preview.style.top = top + 'px';
+      }
+    }
+
+    // ── 추천 받기 ─────────────────────────────────────────
     document.getElementById('btn-generate').addEventListener('click', async () => {
       const btn = document.getElementById('btn-generate');
       const grid = document.getElementById('rec-grid');
-      const label = document.getElementById('rec-label');
-      const basedOn = document.getElementById('based-on');
+      const recTabs = document.getElementById('rec-tabs');
 
       btn.disabled = true;
       btn.textContent = '분석 중...';
-      label.style.display = 'none';
-      basedOn.textContent = '';
+      recTabs.style.display = 'none';
+
+      // 앨범 탭으로 초기화
+      tabs.forEach(t => document.getElementById('tab-' + t).style.display = t === 'albums' ? '' : 'none');
+      document.querySelectorAll('.rec-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'albums'));
+      ['albums','artists','tracks'].forEach(t => document.getElementById('badge-' + t).textContent = '');
+
       grid.innerHTML = `
         <div class="rec-status">
-          최근 청취 기록 분석 중...<br>잠시만 기다려주세요.
+          청취 기록 분석 중...<br>잠시만 기다려주세요.
           <div class="rec-loading-bar"></div>
         </div>
       `;
 
       try {
+        const lastfm_username = localStorage.getItem('mms_lastfm_username') || 'SeanKa0216';
         const res = await fetch('/.netlify/functions/recommend', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             access_token: token,
-            spotify_id: user.spotify_id
+            spotify_id: user.spotify_id,
+            lastfm_username
           })
         });
 
         const data = await res.json();
-
         if (!data.ok) throw new Error(data.error || '추천 실패');
 
-        if (!data.recommendations.length) {
-          grid.innerHTML = `<div class="rec-status">추천할 앨범을 찾지 못했습니다.<br>Spotify에서 음악을 더 들어보세요.</div>`;
-          btn.disabled = false;
-          btn.textContent = '다시 시도';
-          return;
-        }
+        renderAlbums(data.recommendations || []);
+        renderArtists(data.artists || []);
+        renderTracks(data.tracks || []);
 
-        // 기반 아티스트 표시
-        if (data.basedOn?.length) {
-          basedOn.innerHTML = `Based on: <span>${data.basedOn.join(', ')}</span>`;
-        }
-
-        label.style.display = 'block';
-        grid.innerHTML = data.recommendations.map(r => `
-          <a class="rec-card" href="${escHtml(r.spotify_url || '#')}" target="_blank" rel="noopener">
-            <div class="rec-card-art">
-              ${r.cover_url
-                ? `<img src="${escHtml(r.cover_url)}" alt="${escHtml(r.title)}">`
-                : ''
-              }
-              <div class="rec-card-overlay">
-                <svg viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-              </div>
-            </div>
-            <div class="rec-card-title">${escHtml(r.title)}</div>
-            <div class="rec-card-artist">${escHtml(r.artist)}</div>
-            ${r.year ? `<div class="rec-card-year">${r.year}</div>` : ''}
-          </a>
-        `).join('');
+        recTabs.style.display = 'flex';
+        bindPreview();
 
         btn.disabled = false;
         btn.textContent = '새로 추천 받기';

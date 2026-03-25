@@ -6,3 +6,6 @@
 
 [functions."geocode"]
   timeout = 26
+
+[functions."recommend"]
+  timeout = 26
