@@ -493,13 +493,20 @@
         col.appendChild(img);
       }
 
-      // 메타 정보
+      // 메타 정보 (출신 / 활동시작 / 장르 / 앨범수)
       const genres = info?.spotify?.genres || [];
-      const followers = info?.spotify?.followers;
       const spotify_url = info?.spotify?.spotify_url;
-      const scrobbles = info?.lastfm?.playcount;
+      const origin = info?.musicbrainz?.origin;
+      const activeFrom = info?.musicbrainz?.activeFrom;
+      const scrobbles = info?.playcount;
 
       const metaItems = [];
+      if (origin) {
+        metaItems.push(`<div class="artist-meta-item"><div class="artist-meta-label">출신</div><div class="artist-meta-value">${escHtml(origin)}</div></div>`);
+      }
+      if (activeFrom) {
+        metaItems.push(`<div class="artist-meta-item"><div class="artist-meta-label">활동 시작</div><div class="artist-meta-value">${escHtml(activeFrom)}</div></div>`);
+      }
       if (genres.length) {
         const genreLinks = genres.slice(0, 3).map(g => {
           const slug = g.toLowerCase().replace(/\s+/g, '-');
@@ -507,9 +514,6 @@
           return `<a class="genre-tag" href="/genre.html?genre=${encodeURIComponent(slug)}">${escHtml(display)}</a>`;
         }).join('');
         metaItems.push(`<div class="artist-meta-item"><div class="artist-meta-label">장르</div><div class="artist-meta-value"><div class="artist-genres">${genreLinks}</div></div></div>`);
-      }
-      if (followers != null && followers > 0) {
-        metaItems.push(`<div class="artist-meta-item"><div class="artist-meta-label">팔로워</div><div class="artist-meta-value">${escHtml(fmtFollowers(followers))}</div></div>`);
       }
       if (albums.length) {
         metaItems.push(`<div class="artist-meta-item"><div class="artist-meta-label">앨범 수</div><div class="artist-meta-value">${albums.length}</div></div>`);
@@ -522,8 +526,8 @@
       }
       document.getElementById('artist-meta').innerHTML = metaItems.join('');
 
-      // 바이오
-      const bio = info?.lastfm?.bio;
+      // 바이오 (Wikipedia 우선)
+      const bio = info?.bio;
       if (bio) {
         document.getElementById('bio-text').textContent = bio;
         document.getElementById('artist-bio').style.display = 'block';

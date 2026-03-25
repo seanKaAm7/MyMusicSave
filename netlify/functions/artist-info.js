@@ -1,5 +1,5 @@
 // artist-info — Netlify Function
-// 아티스트 정보 조회: Spotify (사진, 장르, 팔로워) + Last.fm (바이오, 스크로블, Top Tracks, Similar)
+// Spotify (사진, 장르) + MusicBrainz (출신, 활동 시작) + Wikipedia (한국어 바이오) + Last.fm (스크로블, Top Tracks, Similar)
 
 const LASTFM_KEY = process.env.LASTFM_API_KEY;
 
@@ -20,16 +20,13 @@ async function refreshAccessToken(refresh_token) {
 // ── Spotify 아티스트 검색 ────────────────────────────────
 async function getSpotifyArtist(name, token) {
   try {
-    // 정확한 이름 매칭: artist: 필드 + 따옴표
-    const q = `artist:"${name}"`;
     const res = await fetch(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=artist&limit=5&market=KR`,
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(name)}&type=artist&limit=5&market=KR`,
       { headers: { 'Authorization': 'Bearer ' + token } }
     );
     if (!res.ok) return { status: res.status, data: null };
     const data = await res.json();
     const items = data.artists?.items || [];
-    // 이름 정확 일치 우선, 없으면 첫 번째
     const nameLower = name.toLowerCase();
     const artist = items.find(a => a.name.toLowerCase() === nameLower) || items[0];
     if (!artist) return { status: 200, data: null };
@@ -39,44 +36,79 @@ async function getSpotifyArtist(name, token) {
         id: artist.id,
         photo: artist.images?.[0]?.url || null,
         genres: artist.genres || [],
-        followers: artist.followers?.total ?? null,
-        popularity: artist.popularity || 0,
         spotify_url: artist.external_urls?.spotify || null,
       }
     };
   } catch { return { status: 500, data: null }; }
 }
 
-// ── Last.fm 아티스트 정보 ─────────────────────────────────
-async function getLastFmArtistInfo(name, username) {
+// ── MusicBrainz: 출신 + 활동 시작 ───────────────────────
+async function getMusicBrainzInfo(name) {
   try {
-    const userParam = username ? `&username=${encodeURIComponent(username)}` : '';
-    // 한국어 바이오 먼저 시도, 없으면 영어로 fallback
-    const fetchInfo = async (lang) => {
-      const langParam = lang ? `&lang=${lang}` : '';
-      const res = await fetch(
-        `https://ws.audioscrobbler.com/2.0/?method=artist.getInfo&artist=${encodeURIComponent(name)}&api_key=${LASTFM_KEY}&autocorrect=1${userParam}${langParam}&format=json`
-      );
-      if (!res.ok) return null;
-      return res.json();
-    };
+    const res = await fetch(
+      `https://musicbrainz.org/ws/2/artist/?query=artist:${encodeURIComponent(name)}&limit=3&fmt=json`,
+      { headers: { 'User-Agent': 'MyMusicSave/1.0 (mymusicsave@noreply.com)' } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const artists = data.artists || [];
+    // 이름이 정확히 일치하는 아티스트 우선
+    const nameLower = name.toLowerCase();
+    const artist = artists.find(a => a.name?.toLowerCase() === nameLower) || artists[0];
+    if (!artist) return null;
+    const beginYear = artist['life-span']?.begin
+      ? artist['life-span'].begin.slice(0, 4)
+      : null;
+    // 출신: begin-area (시작 지역) 또는 area (활동 지역)
+    const origin = artist['begin-area']?.name || artist.area?.name || null;
+    return { origin, activeFrom: beginYear };
+  } catch { return null; }
+}
 
-    let data = await fetchInfo('ko');
-    const bio_ko = (data?.artist?.bio?.content || '').replace(/<a[^>]*>.*?<\/a>/gi, '').replace(/<[^>]+>/g, '').trim();
-    // 한국어 바이오가 너무 짧으면 영어로 재시도
-    if (bio_ko.length < 50) {
-      data = await fetchInfo(null);
+// ── Wikipedia 한국어 바이오 ──────────────────────────────
+async function getWikipediaBio(name) {
+  try {
+    // 1. 영어 Wikipedia에서 한국어 링크 찾기
+    const wikiSearchRes = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(name)}&prop=langlinks&lllang=ko&format=json&origin=*`
+    );
+    if (wikiSearchRes.ok) {
+      const wikiData = await wikiSearchRes.json();
+      const pages = Object.values(wikiData.query?.pages || {});
+      const koTitle = pages[0]?.langlinks?.[0]?.['*'];
+      if (koTitle) {
+        const koRes = await fetch(
+          `https://ko.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(koTitle)}`
+        );
+        if (koRes.ok) {
+          const koData = await koRes.json();
+          const extract = (koData.extract || '').trim();
+          if (extract.length > 50) return extract.slice(0, 800);
+        }
+      }
     }
+    // 2. 영어 Wikipedia 요약 fallback
+    const enRes = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`
+    );
+    if (!enRes.ok) return null;
+    const enData = await enRes.json();
+    const extract = (enData.extract || '').trim();
+    return extract.length > 50 ? extract.slice(0, 800) : null;
+  } catch { return null; }
+}
 
-    const a = data?.artist;
-    if (!a) return null;
-    const bioFull = a.bio?.content || '';
-    const bio = bioFull.replace(/<a[^>]*>.*?<\/a>/gi, '').replace(/<[^>]+>/g, '').trim().slice(0, 800);
-    return {
-      bio: bio || null,
-      playcount: parseInt(a.stats?.userplaycount || '0', 10),
-      listeners: parseInt(a.stats?.listeners || '0', 10),
-    };
+// ── Last.fm 스크로블 수 ───────────────────────────────────
+async function getLastFmPlaycount(name, username) {
+  if (!username) return null;
+  try {
+    const res = await fetch(
+      `https://ws.audioscrobbler.com/2.0/?method=artist.getInfo&artist=${encodeURIComponent(name)}&api_key=${LASTFM_KEY}&autocorrect=1&username=${encodeURIComponent(username)}&format=json`
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const count = parseInt(data.artist?.stats?.userplaycount || '0', 10);
+    return count > 0 ? count : null;
   } catch { return null; }
 }
 
@@ -155,7 +187,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'name and token required' }) };
   }
 
-  // Spotify 아티스트 조회 (토큰 만료 시 갱신 후 재시도)
+  // Spotify 토큰 갱신 처리
   let token = accessToken;
   let newToken = null;
   let spotifyResult = await getSpotifyArtist(name, token);
@@ -169,9 +201,11 @@ exports.handler = async (event) => {
     }
   }
 
-  // Last.fm + Similar 병렬
-  const [lfmInfo, lfmTracks, similarNames] = await Promise.all([
-    getLastFmArtistInfo(name, lastfm || null),
+  // 나머지 병렬 처리
+  const [mbInfo, wikiBio, lfmPlaycount, lfmTracks, similarNames] = await Promise.all([
+    getMusicBrainzInfo(name),
+    getWikipediaBio(name),
+    getLastFmPlaycount(name, lastfm || null),
     getLastFmTopTracks(name, lastfm || null),
     getLastFmSimilar(name),
   ]);
@@ -186,7 +220,9 @@ exports.handler = async (event) => {
     headers,
     body: JSON.stringify({
       spotify: spotifyResult.data || null,
-      lastfm: lfmInfo || null,
+      musicbrainz: mbInfo || null,
+      bio: wikiBio || null,
+      playcount: lfmPlaycount,
       topTracks: lfmTracks,
       similar,
       new_token: newToken,
