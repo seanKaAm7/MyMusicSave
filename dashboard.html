@@ -691,6 +691,15 @@
         },
         options: {
           plugins: { legend: { display: false } },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const year = sorted[elements[0].index][0];
+              window.location.href = `/year.html?year=${year}`;
+            }
+          },
+          onHover: (event, elements) => {
+            event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+          },
           scales: {
             x: {
               ticks: { color: '#555', font: { family: "'Bebas Neue'", size: 10 }, maxRotation: 0 },

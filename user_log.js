@@ -1,5 +1,12 @@
 /*
 -----------------------------------------
+[Log #21] [2026-03-25]
+ * 사용자: genre.html Top Artists 섹션 제거, year.html 신규 구현, dashboard 연도 차트와 year.html 연결 요청
+ * 작업: (1) genre.html — Top Artists 섹션 및 관련 JS 함수 전체 제거, 앨범 그리드만 남김. (2) year.html 신규 작성 — 연도 대형 히어로, PREV/NEXT 연도 네비게이션(Supabase 전체 연도 목록 조회 후 인접 연도 계산), 앨범/아티스트 수 통계, 장르 분포 인라인 바(각 장르 클릭 → genre.html), 추가/아티스트/제목 정렬, 앨범 그리드. (3) dashboard.html 연도 차트 — onClick 핸들러 추가(막대 클릭 시 year.html?year={year} 이동), onHover 커서 변경.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
 [Log #20] [2026-03-25]
  * 사용자: 트랙리스트 왼쪽 정렬 수정, genre.html 신규 구현 요청
  * 작업: (1) album.html 트랙리스트 중앙정렬 제거(margin:0 auto 삭제). (2) profile.html Supabase URL/KEY 오기입 수정. (3) genre.html 신규 작성 — 장르명 대형 히어로, 앨범/아티스트 수 통계, 연도/추가/아티스트/제목 정렬, 앨범 그리드, Top Artists 리스트. (4) dashboard.html word-cloud 클릭 → genre.html로 이동 변경, footer 장르 링크도 genre.html로 변경.

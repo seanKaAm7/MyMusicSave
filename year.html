@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>장르 — MyMusicSave</title>
+  <title>연도 — MyMusicSave</title>
   <link rel="stylesheet" href="styles.css">
   <style>
     /* ── 헤더 ─────────────────────────────────────────── */
-    .genre-header {
+    .year-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -19,58 +19,72 @@
       background: rgba(10,10,10,0.95);
       backdrop-filter: blur(16px);
     }
-    .genre-logo {
+    .year-logo {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 1.3rem;
       letter-spacing: 0.12em;
       color: var(--text);
       text-decoration: none;
     }
-    .btn-back {
+    .year-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-year-nav {
       background: none;
       border: 1px solid var(--border);
       color: var(--text-dim);
-      font-size: 0.72rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.85rem;
       letter-spacing: 0.1em;
-      padding: 0.38rem 0.85rem;
+      padding: 0.35rem 0.8rem;
       cursor: pointer;
-      font-family: inherit;
-      text-transform: uppercase;
       text-decoration: none;
+      display: inline-flex;
+      align-items: center;
     }
-    .btn-back:hover { color: var(--text); border-color: var(--text); }
+    .btn-year-nav:hover { color: var(--text); border-color: var(--text); }
+    .btn-year-nav.disabled { opacity: 0.25; pointer-events: none; }
+    .year-nav-current {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      padding: 0 0.5rem;
+    }
 
     /* ── 히어로 ───────────────────────────────────────── */
-    .genre-hero {
+    .year-hero {
       padding: 3rem 2.5rem 2rem;
       border-bottom: 1px solid var(--border);
     }
-    .genre-hero-label {
+    .year-hero-label {
       font-family: 'Space Mono', monospace;
       font-size: 0.65rem;
       letter-spacing: 0.15em;
       color: var(--text-muted);
       margin-bottom: 0.5rem;
     }
-    .genre-hero-name {
+    .year-hero-num {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(3rem, 8vw, 6rem);
-      letter-spacing: 0.04em;
+      font-size: clamp(4rem, 12vw, 8rem);
+      letter-spacing: 0.02em;
       line-height: 1;
       margin-bottom: 0.75rem;
     }
-    .genre-hero-stats {
+    .year-hero-stats {
       display: flex;
       gap: 2rem;
       align-items: baseline;
     }
-    .genre-hero-stat {
+    .year-hero-stat {
       font-family: 'Space Mono', monospace;
       font-size: 0.72rem;
       color: var(--text-muted);
       letter-spacing: 0.06em;
     }
-    .genre-hero-stat strong {
+    .year-hero-stat strong {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 1.4rem;
       color: var(--text);
@@ -78,8 +92,53 @@
       margin-right: 0.3rem;
     }
 
+    /* ── 장르 분포 바 ──────────────────────────────────── */
+    .genre-dist {
+      padding: 1.5rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+      align-items: center;
+    }
+    .genre-dist-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+    .genre-dist-item:hover .genre-dist-name { color: var(--text); }
+    .genre-dist-bar-wrap {
+      width: 80px;
+      height: 2px;
+      background: var(--border);
+      position: relative;
+    }
+    .genre-dist-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: var(--text-dim);
+    }
+    .genre-dist-name {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .genre-dist-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      color: var(--text-muted);
+    }
+
     /* ── 툴바 ─────────────────────────────────────────── */
-    .genre-toolbar {
+    .year-toolbar {
       display: flex;
       align-items: center;
       gap: 0.5rem;
@@ -101,40 +160,36 @@
     .sort-btn:hover { color: var(--text-dim); border-color: var(--text-dim); }
     .sort-btn.active { color: var(--text); border-color: var(--text); }
 
-    /* ── 메인 영역 ─────────────────────────────────────── */
-    .genre-main {
-      padding: 2rem 2.5rem 4rem;
-    }
-
     /* ── 앨범 그리드 ───────────────────────────────────── */
-    .genre-grid {
+    .year-main {
+      padding: 2rem 2.5rem 5rem;
+    }
+    .year-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 1.2rem;
-      margin-bottom: 3rem;
     }
-    .genre-album-card {
+    .year-album-card {
       cursor: pointer;
       text-decoration: none;
       color: inherit;
       display: block;
     }
-    .genre-album-art {
+    .year-album-art {
       aspect-ratio: 1;
       overflow: hidden;
       background: var(--border);
       margin-bottom: 0.5rem;
-      position: relative;
     }
-    .genre-album-art img {
+    .year-album-art img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
       transition: transform 0.25s ease;
     }
-    .genre-album-card:hover .genre-album-art img { transform: scale(1.05); }
-    .genre-album-title {
+    .year-album-card:hover .year-album-art img { transform: scale(1.05); }
+    .year-album-title {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 0.85rem;
       letter-spacing: 0.04em;
@@ -143,7 +198,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .genre-album-artist {
+    .year-album-artist {
       font-size: 0.68rem;
       color: var(--text-muted);
       margin-top: 0.1rem;
@@ -151,64 +206,14 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .genre-album-year {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.58rem;
+    .year-album-genre {
+      font-size: 0.55rem;
       color: var(--text-muted);
+      letter-spacing: 0.08em;
       margin-top: 0.1rem;
+      text-transform: uppercase;
     }
-
-    /* ── Top Artists ───────────────────────────────────── */
-    .genre-section-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 0.72rem;
-      letter-spacing: 0.2em;
-      color: var(--text-muted);
-      margin-bottom: 1rem;
-    }
-    .artist-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      max-width: 560px;
-    }
-    .artist-row {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      padding: 0.7rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      transition: opacity 0.15s;
-    }
-    .artist-row:hover { opacity: 0.7; }
-    .artist-row-left {
-      display: flex;
-      align-items: baseline;
-      gap: 1rem;
-    }
-    .artist-rank {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.62rem;
-      color: var(--text-muted);
-      width: 1.5rem;
-      text-align: right;
-    }
-    .artist-name {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1rem;
-      letter-spacing: 0.06em;
-    }
-    .artist-count {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.62rem;
-      color: var(--text-muted);
-    }
-
-    /* ── 빈 상태 ───────────────────────────────────────── */
-    .genre-empty {
+    .year-empty {
       font-family: 'Space Mono', monospace;
       font-size: 0.72rem;
       color: var(--text-muted);
@@ -217,51 +222,48 @@
     }
 
     @media (max-width: 600px) {
-      .genre-header, .genre-hero, .genre-toolbar, .genre-main { padding-left: 1.5rem; padding-right: 1.5rem; }
-      .genre-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.8rem; }
+      .year-header, .year-hero, .genre-dist, .year-toolbar, .year-main { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .year-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.8rem; }
     }
   </style>
 </head>
 <body>
 
-  <header class="genre-header">
-    <a class="genre-logo" href="/dashboard.html">MYMUSICSAVE</a>
-    <a class="btn-back" href="/dashboard.html">대시보드</a>
+  <header class="year-header">
+    <a class="year-logo" href="/dashboard.html">MYMUSICSAVE</a>
+    <div class="year-nav">
+      <button class="btn-year-nav" id="btn-prev">← PREV</button>
+      <span class="year-nav-current" id="nav-label">—</span>
+      <button class="btn-year-nav" id="btn-next">NEXT →</button>
+    </div>
   </header>
 
-  <div class="genre-hero">
-    <div class="genre-hero-label">GENRE</div>
-    <div class="genre-hero-name" id="genre-name">—</div>
-    <div class="genre-hero-stats">
-      <div class="genre-hero-stat"><strong id="stat-albums">—</strong>ALBUMS</div>
-      <div class="genre-hero-stat"><strong id="stat-artists">—</strong>ARTISTS</div>
+  <div class="year-hero">
+    <div class="year-hero-label">RELEASE YEAR</div>
+    <div class="year-hero-num" id="year-num">—</div>
+    <div class="year-hero-stats">
+      <div class="year-hero-stat"><strong id="stat-albums">—</strong>ALBUMS</div>
+      <div class="year-hero-stat"><strong id="stat-artists">—</strong>ARTISTS</div>
     </div>
   </div>
 
-  <div class="genre-toolbar">
-    <button class="sort-btn active" data-sort="year">연도순</button>
-    <button class="sort-btn" data-sort="added">추가순</button>
+  <div class="genre-dist" id="genre-dist"></div>
+
+  <div class="year-toolbar">
+    <button class="sort-btn active" data-sort="added">추가순</button>
     <button class="sort-btn" data-sort="artist">아티스트순</button>
     <button class="sort-btn" data-sort="title">제목순</button>
   </div>
 
-  <main class="genre-main">
-    <div class="genre-grid" id="album-grid">
-      <div class="genre-empty">불러오는 중...</div>
+  <main class="year-main">
+    <div class="year-grid" id="album-grid">
+      <div class="year-empty">불러오는 중...</div>
     </div>
-
   </main>
 
   <script>
     const SUPABASE_URL = 'https://aanldsddamkjrziefhuf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhbmxkc2RkYW1ranJ6aWVmaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzg3NDYsImV4cCI6MjA4OTgxNDc0Nn0.N7uKqkjxrAtjvumwW-W5VH5qxCE4RtxKymNWfP097iY';
-
-    const GENRE_DISPLAY = {
-      'hip-hop': 'HIP-HOP', 'rnb': 'R&B', 'kpop': 'K-POP', 'pop': 'POP',
-      'rock': 'ROCK', 'alternative': 'ALTERNATIVE', 'electronic': 'ELECTRONIC',
-      'jazz': 'JAZZ', 'classical': 'CLASSICAL', 'soul': 'SOUL',
-      'soundtrack': 'SOUNDTRACK', 'other': 'OTHER'
-    };
 
     function escHtml(str) {
       return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -272,15 +274,16 @@
     if (!token || !user) window.location.href = '/';
 
     const params = new URLSearchParams(location.search);
-    const genre = params.get('genre') || '';
+    const year = parseInt(params.get('year'), 10);
+    if (!year) window.location.href = '/dashboard.html';
 
-    if (!genre) window.location.href = '/dashboard.html';
-
-    document.title = `${GENRE_DISPLAY[genre] || genre.toUpperCase()} — MyMusicSave`;
-    document.getElementById('genre-name').textContent = GENRE_DISPLAY[genre] || genre.toUpperCase();
+    document.title = `${year} — MyMusicSave`;
+    document.getElementById('year-num').textContent = year;
+    document.getElementById('nav-label').textContent = year;
 
     let allAlbums = [];
-    let sortMode = 'year';
+    let sortMode = 'added';
+    let availableYears = [];
 
     // ── 데이터 로드 ──────────────────────────────────────
     async function init() {
@@ -292,11 +295,34 @@
       if (!users.length) return;
       const userId = users[0].id;
 
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/albums?user_id=eq.${userId}&genre=eq.${genre}&select=*`,
-        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
-      );
-      allAlbums = await res.json();
+      // 이 연도 앨범 + 전체 연도 목록 병렬 조회
+      const [albumRes, allYearRes] = await Promise.all([
+        fetch(
+          `${SUPABASE_URL}/rest/v1/albums?user_id=eq.${userId}&year=eq.${year}&select=*`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+        ),
+        fetch(
+          `${SUPABASE_URL}/rest/v1/albums?user_id=eq.${userId}&select=year`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+        )
+      ]);
+
+      allAlbums = await albumRes.json();
+      const allYearData = await allYearRes.json();
+
+      // 이전/다음 연도 계산
+      const yearSet = [...new Set(allYearData.map(a => a.year).filter(Boolean))].sort((a, b) => a - b);
+      availableYears = yearSet;
+      const idx = yearSet.indexOf(year);
+      const prevYear = idx > 0 ? yearSet[idx - 1] : null;
+      const nextYear = idx < yearSet.length - 1 ? yearSet[idx + 1] : null;
+
+      const btnPrev = document.getElementById('btn-prev');
+      const btnNext = document.getElementById('btn-next');
+      if (prevYear) btnPrev.onclick = () => window.location.href = `/year.html?year=${prevYear}`;
+      else btnPrev.classList.add('disabled');
+      if (nextYear) btnNext.onclick = () => window.location.href = `/year.html?year=${nextYear}`;
+      else btnNext.classList.add('disabled');
 
       // 통계
       const artistSet = new Set(allAlbums.map(a => a.artist).filter(Boolean));
@@ -304,35 +330,54 @@
       document.getElementById('stat-artists').textContent = artistSet.size;
 
       if (!allAlbums.length) {
-        document.getElementById('album-grid').innerHTML = `<div class="genre-empty">이 장르의 앨범이 없습니다.</div>`;
+        document.getElementById('album-grid').innerHTML = `<div class="year-empty">이 연도의 앨범이 없습니다.</div>`;
+        document.getElementById('genre-dist').style.display = 'none';
         return;
       }
 
+      renderGenreDist();
       renderGrid();
+    }
+
+    // ── 장르 분포 ─────────────────────────────────────────
+    function renderGenreDist() {
+      const counts = {};
+      allAlbums.forEach(a => { if (a.genre) counts[a.genre] = (counts[a.genre] || 0) + 1; });
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      const max = sorted[0]?.[1] || 1;
+
+      document.getElementById('genre-dist').innerHTML = sorted.map(([genre, count]) => `
+        <a class="genre-dist-item" href="/genre.html?genre=${encodeURIComponent(genre)}">
+          <span class="genre-dist-name">${escHtml(genre.toUpperCase())}</span>
+          <div class="genre-dist-bar-wrap">
+            <div class="genre-dist-bar" style="width:${Math.round((count / max) * 100)}%"></div>
+          </div>
+          <span class="genre-dist-count">${count}</span>
+        </a>
+      `).join('');
     }
 
     // ── 정렬 ─────────────────────────────────────────────
     function getSorted() {
       const arr = [...allAlbums];
-      if (sortMode === 'year') return arr.sort((a, b) => (b.year || 0) - (a.year || 0));
       if (sortMode === 'added') return arr.sort((a, b) => new Date(b.added_at) - new Date(a.added_at));
       if (sortMode === 'artist') return arr.sort((a, b) => (a.artist || '').localeCompare(b.artist || ''));
       if (sortMode === 'title') return arr.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
       return arr;
     }
 
-    // ── 앨범 그리드 렌더 ─────────────────────────────────
+    // ── 앨범 그리드 ─────────────────────────────────────
     function renderGrid() {
       const grid = document.getElementById('album-grid');
       const sorted = getSorted();
       grid.innerHTML = sorted.map(a => `
-        <a class="genre-album-card" href="/album.html?id=${escHtml(a.spotify_album_id)}">
-          <div class="genre-album-art">
+        <a class="year-album-card" href="/album.html?id=${escHtml(a.spotify_album_id)}">
+          <div class="year-album-art">
             ${a.cover_url ? `<img src="${escHtml(a.cover_url)}" alt="${escHtml(a.title)}" loading="lazy">` : ''}
           </div>
-          <div class="genre-album-title">${escHtml(a.title)}</div>
-          <div class="genre-album-artist">${escHtml(a.artist)}</div>
-          ${a.year ? `<div class="genre-album-year">${a.year}</div>` : ''}
+          <div class="year-album-title">${escHtml(a.title)}</div>
+          <div class="year-album-artist">${escHtml(a.artist)}</div>
+          ${a.genre ? `<div class="year-album-genre">${escHtml(a.genre)}</div>` : ''}
         </a>
       `).join('');
     }
