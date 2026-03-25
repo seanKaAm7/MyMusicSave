@@ -3,6 +3,20 @@
 
 const LASTFM_KEY = process.env.LASTFM_API_KEY;
 
+// ── Spotify 토큰 갱신 ─────────────────────────────────────
+async function refreshAccessToken(refresh_token) {
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Authorization': 'Basic ' + basic, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(refresh_token)}`,
+  });
+  const data = await res.json();
+  return data.access_token || null;
+}
+
 // ── Spotify 아티스트 검색 ────────────────────────────────
 async function getSpotifyArtist(name, token) {
   try {
@@ -10,19 +24,22 @@ async function getSpotifyArtist(name, token) {
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(name)}&type=artist&limit=1&market=KR`,
       { headers: { 'Authorization': 'Bearer ' + token } }
     );
-    if (!res.ok) return null;
+    if (!res.ok) return { status: res.status, data: null };
     const data = await res.json();
     const artist = data.artists?.items?.[0];
-    if (!artist) return null;
+    if (!artist) return { status: 200, data: null };
     return {
-      id: artist.id,
-      photo: artist.images?.[0]?.url || null,
-      genres: artist.genres || [],
-      followers: artist.followers?.total || 0,
-      popularity: artist.popularity || 0,
-      spotify_url: artist.external_urls?.spotify || null,
+      status: 200,
+      data: {
+        id: artist.id,
+        photo: artist.images?.[0]?.url || null,
+        genres: artist.genres || [],
+        followers: artist.followers?.total || 0,
+        popularity: artist.popularity || 0,
+        spotify_url: artist.external_urls?.spotify || null,
+      }
     };
-  } catch { return null; }
+  } catch { return { status: 500, data: null }; }
 }
 
 // ── Last.fm 아티스트 정보 ─────────────────────────────────
@@ -37,7 +54,6 @@ async function getLastFmArtistInfo(name, username) {
     const a = data.artist;
     if (!a) return null;
     const bioFull = a.bio?.content || '';
-    // Last.fm 바이오에서 <a> 태그 링크 제거
     const bio = bioFull.replace(/<a[^>]*>.*?<\/a>/gi, '').replace(/<[^>]+>/g, '').trim().slice(0, 400);
     return {
       bio: bio || null,
@@ -99,41 +115,64 @@ async function getSimilarPhotos(names, token) {
 }
 
 // ── 핸들러 ────────────────────────────────────────────────
-export async function handler(event) {
+exports.handler = async (event) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Content-Type': 'application/json',
   };
 
-  const name = event.queryStringParameters?.name;
-  const token = event.queryStringParameters?.token;
-  const lastfm_username = event.queryStringParameters?.lastfm || '';
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers };
+  }
 
-  if (!name || !token) {
+  let body;
+  try {
+    body = JSON.parse(event.body || '{}');
+  } catch {
+    return { statusCode: 400, headers, body: JSON.stringify({ error: 'invalid body' }) };
+  }
+
+  const { name, token: accessToken, refresh_token, lastfm } = body;
+
+  if (!name || !accessToken) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'name and token required' }) };
   }
 
-  // 병렬: Spotify + Last.fm 기본 정보 + Top Tracks + Similar
-  const [spotify, lfmInfo, lfmTracks, similarNames] = await Promise.all([
-    getSpotifyArtist(name, token),
-    getLastFmArtistInfo(name, lastfm_username || null),
-    getLastFmTopTracks(name, lastfm_username || null),
+  // Spotify 아티스트 조회 (토큰 만료 시 갱신 후 재시도)
+  let token = accessToken;
+  let newToken = null;
+  let spotifyResult = await getSpotifyArtist(name, token);
+
+  if (spotifyResult.status === 401 && refresh_token) {
+    const refreshed = await refreshAccessToken(refresh_token);
+    if (refreshed) {
+      token = refreshed;
+      newToken = refreshed;
+      spotifyResult = await getSpotifyArtist(name, token);
+    }
+  }
+
+  // Last.fm + Similar 병렬
+  const [lfmInfo, lfmTracks, similarNames] = await Promise.all([
+    getLastFmArtistInfo(name, lastfm || null),
+    getLastFmTopTracks(name, lastfm || null),
     getLastFmSimilar(name),
   ]);
 
-  // Similar 아티스트 사진 (Spotify 있을 때만)
-  const similar = similarNames.length && token
+  // Similar 사진
+  const similar = similarNames.length
     ? await getSimilarPhotos(similarNames, token)
-    : similarNames.map(n => ({ name: n, photo: null }));
+    : [];
 
   return {
     statusCode: 200,
     headers,
     body: JSON.stringify({
-      spotify: spotify || null,
+      spotify: spotifyResult.data || null,
       lastfm: lfmInfo || null,
       topTracks: lfmTracks,
       similar,
+      new_token: newToken,
     }),
   };
-}
+};
