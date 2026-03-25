@@ -1,5 +1,12 @@
 /*
 -----------------------------------------
+[Log #23] [2026-03-25]
+ * 사용자: artist.html 각종 개선 요청 — 팔로워 0 문제, 한국어 바이오, 아티스트별 상징색, 섹션 간격
+ * 작업: (1) artist-info.js 전면 개편 — Spotify 팔로워 제거, MusicBrainz API로 출신/활동시작 추가, Wikipedia 한국어 바이오 우선 조회 + DeepL 번역(영어→한국어) 추가. (2) artist.html 메타 필드 → 출신/활동시작/장르/앨범수/스크로블. (3) canvas로 사진 dominant color 추출 → 아티스트명 색상 + 바이오 좌측 바에 적용. (4) 섹션 패딩 2rem→3.5rem, top track 행 간격 확대. (5) dashboard 장르 word-cloud 인라인 필터로 복원.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
 [Log #22] [2026-03-25]
  * 사용자: artist.html 신규 구현 요청. 레퍼런스 이미지 제공 (사진 왼쪽, 이름 대형 오른쪽 레이아웃, 골드 컬러 네임)
  * 작업: (1) netlify/functions/artist-info.js 신규 작성 — Spotify 아티스트 검색(사진/장르/팔로워), Last.fm artist.getInfo(바이오/스크로블), Last.fm artist.getTopTracks, Last.fm artist.getSimilar + Spotify 유사 아티스트 사진 조회 병렬 처리. (2) artist.html 신규 작성 — 2컬럼 히어로(사진+정보), 골드(#E8B84B) 대형 아티스트명, 메타 그리드(장르/팔로워/앨범수/스크로블), Last.fm 바이오 좌측 보더, 보관함 앨범 그리드, Top Tracks 리스트, Similar Artists 원형 카드. Last.fm 없어도 Spotify만으로 동작. (3) dashboard.html 아티스트 TOP10 행 → artist.html 링크 연결. (4) album.html 아티스트명 → artist.html 링크 연결.
