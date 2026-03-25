@@ -83,7 +83,8 @@ function buildAlbumResponse(raw) {
       no: t.track_number,
       title: t.name,
       duration: formatTrackDuration(t.duration_ms),
-      feat
+      feat,
+      spotify_url: t.external_urls?.spotify || null
     };
   });
 

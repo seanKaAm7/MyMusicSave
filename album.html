@@ -122,6 +122,81 @@
       color: var(--text-muted);
       min-height: 1rem;
     }
+
+    /* ── 트랙리스트 섹션 ─────────────────────────────────── */
+    .tracklist-section {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 40px 5rem;
+    }
+    .tracklist-wrap {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .tracklist-header {
+      display: grid;
+      grid-template-columns: 48px 1fr 200px 72px;
+      padding: 0 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .tl-col {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .tl-num { text-align: right; }
+    .tl-title, .tl-feat { padding-left: 1.2rem; }
+    .tl-time { text-align: right; }
+
+    .tracklist-row {
+      display: grid;
+      grid-template-columns: 48px 1fr 200px 72px;
+      padding: 0.85rem 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      align-items: center;
+      transition: background 0.1s;
+    }
+    .tracklist-row:hover { background: rgba(255,255,255,0.03); }
+    .tracklist-row.clickable { cursor: pointer; }
+    .tr-num {
+      text-align: right;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .tr-title {
+      padding-left: 1.2rem;
+      font-size: 0.92rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 0.5rem;
+    }
+    .tr-feat {
+      padding-left: 1.2rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 0.5rem;
+    }
+    .tr-time {
+      text-align: right;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 640px) {
+      .tracklist-section { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .tracklist-header, .tracklist-row {
+        grid-template-columns: 36px 1fr 60px;
+      }
+      .tl-feat, .tr-feat { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -140,11 +215,27 @@
     <div class="album-poster-wrapper" id="poster-wrapper" style="display:none">
       <div class="album-poster" id="album-poster"></div>
     </div>
+    <!-- 트랙리스트 -->
+    <section class="tracklist-section" id="tracklist-section" style="display:none">
+      <div class="tracklist-wrap">
+        <div class="tracklist-header">
+          <span class="tl-col tl-num">#</span>
+          <span class="tl-col tl-title">제목</span>
+          <span class="tl-col tl-feat">피처링</span>
+          <span class="tl-col tl-time">시간</span>
+        </div>
+        <div id="tracklist-body"></div>
+      </div>
+    </section>
   </main>
 
   <script>
     const SUPABASE_URL = 'https://aanldsddamkjrziefhuf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhbmxkc2RkYW1ranJ6aWVmaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzg3NDYsImV4cCI6MjA4OTgxNDc0Nn0.N7uKqkjxrAtjvumwW-W5VH5qxCE4RtxKymNWfP097iY';
+
+    function escHtml(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
 
     const params = new URLSearchParams(location.search);
     const spotifyId = params.get('id');
@@ -290,6 +381,28 @@
 
       document.getElementById('loading').style.display = 'none';
       document.getElementById('poster-wrapper').style.display = 'block';
+
+      if (tracks.length) renderTracklist(tracks);
+    }
+
+    function renderTracklist(tracks) {
+      const body = document.getElementById('tracklist-body');
+      body.innerHTML = tracks.map(t => `
+        <div class="tracklist-row${t.spotify_url ? ' clickable' : ''}"
+          ${t.spotify_url ? `data-url="${escHtml(t.spotify_url)}"` : ''}>
+          <span class="tr-num">${t.no}</span>
+          <span class="tr-title">${escHtml(t.title)}</span>
+          <span class="tr-feat">${t.feat?.length ? escHtml(t.feat.join(', ')) : ''}</span>
+          <span class="tr-time">${t.duration}</span>
+        </div>
+      `).join('');
+
+      body.addEventListener('click', e => {
+        const row = e.target.closest('.tracklist-row.clickable');
+        if (row?.dataset.url) window.open(row.dataset.url, '_blank');
+      });
+
+      document.getElementById('tracklist-section').style.display = 'block';
     }
 
     // ── 장르 수동 수정 ──
