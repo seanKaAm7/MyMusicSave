@@ -368,6 +368,40 @@
   </div>
 
   <script>
+    // ── 사진에서 vibrant dominant color 추출 ──────────────
+    function extractDominantColor(img) {
+      try {
+        const canvas = document.createElement('canvas');
+        const size = 80;
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, size, size);
+        const data = ctx.getImageData(0, 0, size, size).data;
+        const hueBuckets = {};
+        for (let i = 0; i < data.length; i += 8) {
+          const r = data[i] / 255, g = data[i+1] / 255, b = data[i+2] / 255;
+          const max = Math.max(r, g, b), min = Math.min(r, g, b);
+          const l = (max + min) / 2;
+          const d = max - min;
+          const s = d === 0 ? 0 : (l < 0.5 ? d / (max + min) : d / (2 - max - min));
+          // 채도 낮거나 너무 어둡거나 밝으면 skip
+          if (s < 0.25 || l < 0.15 || l > 0.85) continue;
+          let h;
+          if (max === r) h = ((g - b) / d) % 6;
+          else if (max === g) h = (b - r) / d + 2;
+          else h = (r - g) / d + 4;
+          h = Math.round(h * 60);
+          if (h < 0) h += 360;
+          const bucket = Math.round(h / 15) * 15;
+          hueBuckets[bucket] = (hueBuckets[bucket] || 0) + 1;
+        }
+        const entries = Object.entries(hueBuckets);
+        if (!entries.length) return null;
+        const hue = entries.sort((a, b) => b[1] - a[1])[0][0];
+        return `hsl(${hue}, 80%, 68%)`;
+      } catch { return null; }
+    }
+
     const SUPABASE_URL = 'https://aanldsddamkjrziefhuf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhbmxkc2RkYW1ranJ6aWVmaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzg3NDYsImV4cCI6MjA4OTgxNDc0Nn0.N7uKqkjxrAtjvumwW-W5VH5qxCE4RtxKymNWfP097iY';
 
@@ -441,12 +475,19 @@
       document.getElementById('library-title').textContent = `${name.toUpperCase()} — 등록 앨범`;
       document.getElementById('photo-placeholder').textContent = name.slice(0, 2).toUpperCase();
 
-      // 아티스트 사진
+      // 아티스트 사진 + dominant color 추출
       const photo = info?.spotify?.photo;
       if (photo) {
         const img = document.createElement('img');
-        img.src = photo;
+        img.crossOrigin = 'anonymous';
         img.alt = name;
+        img.onload = () => {
+          const color = extractDominantColor(img);
+          if (color) document.getElementById('artist-name').style.color = color;
+          // photo-col 배경도 같은 색으로 은은하게
+          document.getElementById('photo-col').style.boxShadow = color ? `inset 0 0 60px ${color}22` : '';
+        };
+        img.src = photo;
         const col = document.getElementById('photo-col');
         col.innerHTML = '';
         col.appendChild(img);
@@ -467,7 +508,7 @@
         }).join('');
         metaItems.push(`<div class="artist-meta-item"><div class="artist-meta-label">장르</div><div class="artist-meta-value"><div class="artist-genres">${genreLinks}</div></div></div>`);
       }
-      if (followers != null) {
+      if (followers != null && followers > 0) {
         metaItems.push(`<div class="artist-meta-item"><div class="artist-meta-label">팔로워</div><div class="artist-meta-value">${escHtml(fmtFollowers(followers))}</div></div>`);
       }
       if (albums.length) {

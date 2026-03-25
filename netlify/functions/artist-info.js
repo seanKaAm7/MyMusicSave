@@ -20,13 +20,18 @@ async function refreshAccessToken(refresh_token) {
 // ── Spotify 아티스트 검색 ────────────────────────────────
 async function getSpotifyArtist(name, token) {
   try {
+    // 정확한 이름 매칭: artist: 필드 + 따옴표
+    const q = `artist:"${name}"`;
     const res = await fetch(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(name)}&type=artist&limit=1&market=KR`,
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=artist&limit=5&market=KR`,
       { headers: { 'Authorization': 'Bearer ' + token } }
     );
     if (!res.ok) return { status: res.status, data: null };
     const data = await res.json();
-    const artist = data.artists?.items?.[0];
+    const items = data.artists?.items || [];
+    // 이름 정확 일치 우선, 없으면 첫 번째
+    const nameLower = name.toLowerCase();
+    const artist = items.find(a => a.name.toLowerCase() === nameLower) || items[0];
     if (!artist) return { status: 200, data: null };
     return {
       status: 200,
@@ -34,7 +39,7 @@ async function getSpotifyArtist(name, token) {
         id: artist.id,
         photo: artist.images?.[0]?.url || null,
         genres: artist.genres || [],
-        followers: artist.followers?.total || 0,
+        followers: artist.followers?.total ?? null,
         popularity: artist.popularity || 0,
         spotify_url: artist.external_urls?.spotify || null,
       }
@@ -46,15 +51,27 @@ async function getSpotifyArtist(name, token) {
 async function getLastFmArtistInfo(name, username) {
   try {
     const userParam = username ? `&username=${encodeURIComponent(username)}` : '';
-    const res = await fetch(
-      `https://ws.audioscrobbler.com/2.0/?method=artist.getInfo&artist=${encodeURIComponent(name)}&api_key=${LASTFM_KEY}&autocorrect=1${userParam}&format=json`
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const a = data.artist;
+    // 한국어 바이오 먼저 시도, 없으면 영어로 fallback
+    const fetchInfo = async (lang) => {
+      const langParam = lang ? `&lang=${lang}` : '';
+      const res = await fetch(
+        `https://ws.audioscrobbler.com/2.0/?method=artist.getInfo&artist=${encodeURIComponent(name)}&api_key=${LASTFM_KEY}&autocorrect=1${userParam}${langParam}&format=json`
+      );
+      if (!res.ok) return null;
+      return res.json();
+    };
+
+    let data = await fetchInfo('ko');
+    const bio_ko = (data?.artist?.bio?.content || '').replace(/<a[^>]*>.*?<\/a>/gi, '').replace(/<[^>]+>/g, '').trim();
+    // 한국어 바이오가 너무 짧으면 영어로 재시도
+    if (bio_ko.length < 50) {
+      data = await fetchInfo(null);
+    }
+
+    const a = data?.artist;
     if (!a) return null;
     const bioFull = a.bio?.content || '';
-    const bio = bioFull.replace(/<a[^>]*>.*?<\/a>/gi, '').replace(/<[^>]+>/g, '').trim().slice(0, 400);
+    const bio = bioFull.replace(/<a[^>]*>.*?<\/a>/gi, '').replace(/<[^>]+>/g, '').trim().slice(0, 800);
     return {
       bio: bio || null,
       playcount: parseInt(a.stats?.userplaycount || '0', 10),
