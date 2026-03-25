@@ -321,8 +321,13 @@
       gap: 1rem;
       padding: 0.55rem 0;
       border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      transition: opacity 0.15s;
     }
     .artist-poster-row:last-child { border-bottom: none; }
+    .artist-poster-row:hover { opacity: 0.7; }
     .artist-poster-num {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 1.6rem;
@@ -721,11 +726,11 @@
       albums.forEach(a => { counts[a.artist] = (counts[a.artist] || 0) + 1; });
       const top10 = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
       document.getElementById('artist-list').innerHTML = top10.map(([name, count], i) => `
-        <div class="artist-poster-row">
+        <a class="artist-poster-row" href="/artist.html?name=${encodeURIComponent(name)}">
           <span class="artist-poster-num">${String(i + 1).padStart(2, '0')}</span>
           <span class="artist-poster-name">${escHtml(name)}</span>
           <span class="artist-poster-count">${count}</span>
-        </div>
+        </a>
       `).join('');
     }
 

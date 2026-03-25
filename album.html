@@ -352,7 +352,7 @@
             </div>
             <div class="poster-artist-block">
               <div class="poster-artist-label">Artist</div>
-              <div class="poster-artist-name">${artist}</div>
+              <a class="poster-artist-name" href="/artist.html?name=${encodeURIComponent(artist)}" style="text-decoration:none;color:inherit;cursor:pointer;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">${artist}</a>
               <div class="poster-release-block">
                 <div class="poster-release-item">
                   <span class="poster-release-label">Out Now</span>

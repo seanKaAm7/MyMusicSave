@@ -1,5 +1,12 @@
 /*
 -----------------------------------------
+[Log #22] [2026-03-25]
+ * 사용자: artist.html 신규 구현 요청. 레퍼런스 이미지 제공 (사진 왼쪽, 이름 대형 오른쪽 레이아웃, 골드 컬러 네임)
+ * 작업: (1) netlify/functions/artist-info.js 신규 작성 — Spotify 아티스트 검색(사진/장르/팔로워), Last.fm artist.getInfo(바이오/스크로블), Last.fm artist.getTopTracks, Last.fm artist.getSimilar + Spotify 유사 아티스트 사진 조회 병렬 처리. (2) artist.html 신규 작성 — 2컬럼 히어로(사진+정보), 골드(#E8B84B) 대형 아티스트명, 메타 그리드(장르/팔로워/앨범수/스크로블), Last.fm 바이오 좌측 보더, 보관함 앨범 그리드, Top Tracks 리스트, Similar Artists 원형 카드. Last.fm 없어도 Spotify만으로 동작. (3) dashboard.html 아티스트 TOP10 행 → artist.html 링크 연결. (4) album.html 아티스트명 → artist.html 링크 연결.
+-----------------------------------------
+*/
+/*
+-----------------------------------------
 [Log #21] [2026-03-25]
  * 사용자: genre.html Top Artists 섹션 제거, year.html 신규 구현, dashboard 연도 차트와 year.html 연결 요청
  * 작업: (1) genre.html — Top Artists 섹션 및 관련 JS 함수 전체 제거, 앨범 그리드만 남김. (2) year.html 신규 작성 — 연도 대형 히어로, PREV/NEXT 연도 네비게이션(Supabase 전체 연도 목록 조회 후 인접 연도 계산), 앨범/아티스트 수 통계, 장르 분포 인라인 바(각 장르 클릭 → genre.html), 추가/아티스트/제목 정렬, 앨범 그리드. (3) dashboard.html 연도 차트 — onClick 핸들러 추가(막대 클릭 시 year.html?year={year} 이동), onHover 커서 변경.

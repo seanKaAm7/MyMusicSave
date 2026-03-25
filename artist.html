@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아티스트 — MyMusicSave</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── 헤더 ─────────────────────────────────────────── */
+    .artist-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(16px);
+    }
+    .artist-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .btn-back {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      padding: 0.38rem 0.85rem;
+      cursor: pointer;
+      font-family: inherit;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+    .btn-back:hover { color: var(--text); border-color: var(--text); }
+
+    /* ── 히어로 (2컬럼) ───────────────────────────────── */
+    .artist-hero {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .artist-photo-col {
+      overflow: hidden;
+      background: var(--border);
+      aspect-ratio: 3/4;
+      max-height: 480px;
+    }
+    .artist-photo-col img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .artist-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    .artist-info-col {
+      padding: 3rem 3rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .artist-hero-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+    }
+    .artist-hero-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 7vw, 6.5rem);
+      letter-spacing: 0.02em;
+      line-height: 0.92;
+      color: #E8B84B;
+      margin-bottom: 2rem;
+      word-break: break-word;
+    }
+    .artist-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 1.2rem 2rem;
+      margin-bottom: 2rem;
+    }
+    .artist-meta-item {}
+    .artist-meta-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+      text-transform: uppercase;
+    }
+    .artist-meta-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      letter-spacing: 0.02em;
+    }
+    .artist-meta-value a {
+      color: var(--text-dim);
+      text-decoration: none;
+    }
+    .artist-meta-value a:hover { color: var(--text); }
+    .artist-genres {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .genre-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.55rem;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+    .genre-tag:hover { color: var(--text); border-color: var(--text-dim); }
+    .artist-bio {
+      border-left: 2px solid var(--border);
+      padding-left: 1.2rem;
+      margin-top: auto;
+    }
+    .artist-bio p {
+      font-size: 0.82rem;
+      line-height: 1.7;
+      color: var(--text-dim);
+      letter-spacing: 0.01em;
+    }
+
+    /* ── 섹션 공통 ─────────────────────────────────────── */
+    .artist-section {
+      padding: 2rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      color: var(--text-muted);
+      margin-bottom: 1.2rem;
+    }
+
+    /* ── 앨범 그리드 ───────────────────────────────────── */
+    .artist-album-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1.2rem;
+    }
+    .artist-album-card {
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .artist-album-art {
+      aspect-ratio: 1;
+      overflow: hidden;
+      background: var(--border);
+      margin-bottom: 0.5rem;
+    }
+    .artist-album-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+    .artist-album-card:hover .artist-album-art img { transform: scale(1.05); }
+    .artist-album-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .artist-album-year {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+
+    /* ── Top Tracks ────────────────────────────────────── */
+    .top-tracks-list {
+      display: flex;
+      flex-direction: column;
+      max-width: 600px;
+    }
+    .top-track-row {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+    .top-track-row:hover { opacity: 0.75; }
+    .top-track-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      width: 1.4rem;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .top-track-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .top-track-plays {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Similar Artists ───────────────────────────────── */
+    .similar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 1rem;
+    }
+    .similar-card {
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .similar-photo {
+      aspect-ratio: 1;
+      overflow: hidden;
+      background: var(--border);
+      border-radius: 50%;
+      margin-bottom: 0.5rem;
+    }
+    .similar-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+    .similar-card:hover .similar-photo img { transform: scale(1.08); }
+    .similar-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      color: var(--text-muted);
+    }
+    .similar-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── 로딩 ──────────────────────────────────────────── */
+    .artist-loading {
+      padding: 5rem 2.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+    }
+    .artist-empty {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      padding: 1.5rem 0;
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 720px) {
+      .artist-hero { grid-template-columns: 1fr; }
+      .artist-photo-col { aspect-ratio: 1; max-height: 300px; }
+      .artist-info-col { padding: 2rem 1.5rem; }
+      .artist-header, .artist-section { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .artist-album-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.8rem; }
+      .similar-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="artist-header">
+    <a class="artist-logo" href="/dashboard.html">MYMUSICSAVE</a>
+    <a class="btn-back" href="/dashboard.html">대시보드</a>
+  </header>
+
+  <div id="loading" class="artist-loading">불러오는 중...</div>
+
+  <div id="artist-content" style="display:none">
+
+    <!-- 히어로 -->
+    <div class="artist-hero" id="artist-hero">
+      <div class="artist-photo-col" id="photo-col">
+        <div class="artist-photo-placeholder" id="photo-placeholder">?</div>
+      </div>
+      <div class="artist-info-col">
+        <div>
+          <div class="artist-hero-label">아티스트</div>
+          <div class="artist-hero-name" id="artist-name">—</div>
+          <div class="artist-meta-grid" id="artist-meta"></div>
+        </div>
+        <div class="artist-bio" id="artist-bio" style="display:none">
+          <p id="bio-text"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 보관함 앨범 -->
+    <div class="artist-section" id="library-section">
+      <div class="section-title" id="library-title">— 등록 앨범</div>
+      <div class="artist-album-grid" id="album-grid">
+        <div class="artist-empty">앨범 없음</div>
+      </div>
+    </div>
+
+    <!-- Top Tracks -->
+    <div class="artist-section" id="tracks-section" style="display:none">
+      <div class="section-title">TOP TRACKS</div>
+      <div class="top-tracks-list" id="tracks-list"></div>
+    </div>
+
+    <!-- Similar Artists -->
+    <div class="artist-section" id="similar-section" style="display:none">
+      <div class="section-title">SIMILAR ARTISTS</div>
+      <div class="similar-grid" id="similar-grid"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://aanldsddamkjrziefhuf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhbmxkc2RkYW1ranJ6aWVmaHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzg3NDYsImV4cCI6MjA4OTgxNDc0Nn0.N7uKqkjxrAtjvumwW-W5VH5qxCE4RtxKymNWfP097iY';
+
+    function escHtml(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function fmtFollowers(n) {
+      if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
+      return String(n);
+    }
+
+    const token = localStorage.getItem('mms_access_token');
+    const user = JSON.parse(localStorage.getItem('mms_user') || 'null');
+    if (!token || !user) window.location.href = '/';
+
+    const params = new URLSearchParams(location.search);
+    const artistName = params.get('name') || '';
+    if (!artistName) window.location.href = '/dashboard.html';
+
+    document.title = `${artistName} — MyMusicSave`;
+
+    const GENRE_DISPLAY = {
+      'hip-hop': 'HIP-HOP', 'rnb': 'R&B', 'kpop': 'K-POP', 'pop': 'POP',
+      'rock': 'ROCK', 'alternative': 'ALTERNATIVE', 'electronic': 'ELECTRONIC',
+      'jazz': 'JAZZ', 'classical': 'CLASSICAL', 'soul': 'SOUL',
+      'soundtrack': 'SOUNDTRACK', 'other': 'OTHER'
+    };
+
+    async function init() {
+      const lastfm = localStorage.getItem('mms_lastfm_username') || '';
+
+      // Supabase 유저 ID + 아티스트 앨범 병렬
+      const userRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/users?spotify_id=eq.${user.spotify_id}&select=id`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+      );
+      const users = await userRes.json();
+      const userId = users[0]?.id;
+
+      const [albumsData, infoData] = await Promise.all([
+        userId ? fetch(
+          `${SUPABASE_URL}/rest/v1/albums?user_id=eq.${userId}&artist=eq.${encodeURIComponent(artistName)}&select=*&order=year.desc`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+        ).then(r => r.json()).catch(() => []) : Promise.resolve([]),
+        fetch(
+          `/.netlify/functions/artist-info?name=${encodeURIComponent(artistName)}&token=${encodeURIComponent(token)}&lastfm=${encodeURIComponent(lastfm)}`
+        ).then(r => r.ok ? r.json() : null).catch(() => null),
+      ]);
+
+      render(albumsData, infoData);
+    }
+
+    function render(albums, info) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('artist-content').style.display = 'block';
+
+      const name = artistName;
+      document.getElementById('artist-name').textContent = name.toUpperCase();
+      document.getElementById('library-title').textContent = `${name.toUpperCase()} — 등록 앨범`;
+      document.getElementById('photo-placeholder').textContent = name.slice(0, 2).toUpperCase();
+
+      // 아티스트 사진
+      const photo = info?.spotify?.photo;
+      if (photo) {
+        const img = document.createElement('img');
+        img.src = photo;
+        img.alt = name;
+        const col = document.getElementById('photo-col');
+        col.innerHTML = '';
+        col.appendChild(img);
+      }
+
+      // 메타 정보
+      const genres = info?.spotify?.genres || [];
+      const followers = info?.spotify?.followers;
+      const spotify_url = info?.spotify?.spotify_url;
+      const scrobbles = info?.lastfm?.playcount;
+
+      const metaItems = [];
+      if (genres.length) {
+        const genreLinks = genres.slice(0, 3).map(g => {
+          const slug = g.toLowerCase().replace(/\s+/g, '-');
+          const display = GENRE_DISPLAY[slug] || g.toUpperCase();
+          return `<a class="genre-tag" href="/genre.html?genre=${encodeURIComponent(slug)}">${escHtml(display)}</a>`;
+        }).join('');
+        metaItems.push(`<div class="artist-meta-item"><div class="artist-meta-label">장르</div><div class="artist-meta-value"><div class="artist-genres">${genreLinks}</div></div></div>`);
+      }
+      if (followers != null) {
+        metaItems.push(`<div class="artist-meta-item"><div class="artist-meta-label">팔로워</div><div class="artist-meta-value">${escHtml(fmtFollowers(followers))}</div></div>`);
+      }
+      if (albums.length) {
+        metaItems.push(`<div class="artist-meta-item"><div class="artist-meta-label">앨범 수</div><div class="artist-meta-value">${albums.length}</div></div>`);
+      }
+      if (scrobbles) {
+        metaItems.push(`<div class="artist-meta-item"><div class="artist-meta-label">내 스크로블</div><div class="artist-meta-value">${scrobbles.toLocaleString()}</div></div>`);
+      }
+      if (spotify_url) {
+        metaItems.push(`<div class="artist-meta-item"><div class="artist-meta-label">Spotify</div><div class="artist-meta-value"><a href="${escHtml(spotify_url)}" target="_blank" rel="noopener">열기 ↗</a></div></div>`);
+      }
+      document.getElementById('artist-meta').innerHTML = metaItems.join('');
+
+      // 바이오
+      const bio = info?.lastfm?.bio;
+      if (bio) {
+        document.getElementById('bio-text').textContent = bio;
+        document.getElementById('artist-bio').style.display = 'block';
+      }
+
+      // 앨범 그리드
+      if (albums.length) {
+        document.getElementById('album-grid').innerHTML = albums.map(a => `
+          <a class="artist-album-card" href="/album.html?id=${escHtml(a.spotify_album_id)}">
+            <div class="artist-album-art">
+              ${a.cover_url ? `<img src="${escHtml(a.cover_url)}" alt="${escHtml(a.title)}" loading="lazy">` : ''}
+            </div>
+            <div class="artist-album-title">${escHtml(a.title)}</div>
+            ${a.year ? `<div class="artist-album-year">${a.year}</div>` : ''}
+          </a>
+        `).join('');
+      }
+
+      // Top Tracks
+      const tracks = info?.topTracks || [];
+      if (tracks.length) {
+        document.getElementById('tracks-section').style.display = 'block';
+        document.getElementById('tracks-list').innerHTML = tracks.map((t, i) => `
+          <a class="top-track-row" ${t.url ? `href="${escHtml(t.url)}" target="_blank" rel="noopener"` : ''}>
+            <span class="top-track-num">${String(i + 1).padStart(2, '0')}</span>
+            <span class="top-track-name">${escHtml(t.name)}</span>
+            ${t.playcount ? `<span class="top-track-plays">${t.playcount.toLocaleString()} plays</span>` : ''}
+          </a>
+        `).join('');
+      }
+
+      // Similar Artists
+      const similar = info?.similar || [];
+      if (similar.length) {
+        document.getElementById('similar-section').style.display = 'block';
+        document.getElementById('similar-grid').innerHTML = similar.map(a => `
+          <a class="similar-card" href="/artist.html?name=${encodeURIComponent(a.name)}">
+            <div class="similar-photo">
+              ${a.photo
+                ? `<img src="${escHtml(a.photo)}" alt="${escHtml(a.name)}" loading="lazy">`
+                : `<div class="similar-photo-placeholder">${escHtml(a.name.slice(0,2).toUpperCase())}</div>`
+              }
+            </div>
+            <div class="similar-name">${escHtml(a.name)}</div>
+          </a>
+        `).join('');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
