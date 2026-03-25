@@ -65,7 +65,23 @@ async function getMusicBrainzInfo(name) {
   } catch { return null; }
 }
 
-// ── Wikipedia 한국어 바이오 ──────────────────────────────
+// ── DeepL 번역 ───────────────────────────────────────────
+async function translateToKorean(text) {
+  const key = process.env.DEEPL_API_KEY;
+  if (!key || !text) return null;
+  try {
+    const res = await fetch('https://api-free.deepl.com/v2/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `DeepL-Auth-Key ${key}` },
+      body: JSON.stringify({ text: [text], target_lang: 'KO', source_lang: 'EN' }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.translations?.[0]?.text || null;
+  } catch { return null; }
+}
+
+// ── Wikipedia 바이오 (한국어 우선, 없으면 영어→DeepL 번역) ─
 async function getWikipediaBio(name) {
   try {
     // 1. 영어 Wikipedia에서 한국어 링크 찾기
@@ -83,19 +99,21 @@ async function getWikipediaBio(name) {
         if (koRes.ok) {
           const koData = await koRes.json();
           const extract = (koData.extract || '').trim();
-          // 한국어 바이오가 충분히 길 때만 사용 (한 줄짜리 제외)
           if (extract.length > 200) return extract.slice(0, 800);
         }
       }
     }
-    // 2. 영어 Wikipedia 요약 fallback
+    // 2. 영어 Wikipedia → DeepL 번역
     const enRes = await fetch(
       `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`
     );
     if (!enRes.ok) return null;
     const enData = await enRes.json();
-    const extract = (enData.extract || '').trim();
-    return extract.length > 50 ? extract.slice(0, 800) : null;
+    const enText = (enData.extract || '').trim();
+    if (enText.length < 50) return null;
+
+    const translated = await translateToKorean(enText.slice(0, 800));
+    return translated || enText.slice(0, 800);
   } catch { return null; }
 }
 
