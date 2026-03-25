@@ -635,7 +635,16 @@
 
       container.querySelectorAll('.genre-typo-item').forEach(el => {
         el.addEventListener('click', () => {
-          window.location.href = `/genre.html?genre=${encodeURIComponent(el.dataset.genre)}`;
+          const genre = el.dataset.genre;
+          if (activeGenre === genre) {
+            activeGenre = null;
+            container.querySelectorAll('.genre-typo-item').forEach(e => e.classList.remove('active'));
+          } else {
+            activeGenre = genre;
+            container.querySelectorAll('.genre-typo-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+          }
+          renderCoverGrid(allAlbums);
         });
       });
     }
