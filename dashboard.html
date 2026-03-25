@@ -494,12 +494,12 @@
       </div>
       <div class="footer-col">
         <div class="footer-col-label">GENRES</div>
-        <a href="/library.html?genre=hip-hop">Hip-Hop</a>
-        <a href="/library.html?genre=rnb">R&amp;B / Soul</a>
-        <a href="/library.html?genre=kpop">K-Pop</a>
-        <a href="/library.html?genre=rock">Rock</a>
-        <a href="/library.html?genre=electronic">Electronic</a>
-        <a href="/library.html?genre=jazz">Jazz</a>
+        <a href="/genre.html?genre=hip-hop">Hip-Hop</a>
+        <a href="/genre.html?genre=rnb">R&amp;B / Soul</a>
+        <a href="/genre.html?genre=kpop">K-Pop</a>
+        <a href="/genre.html?genre=rock">Rock</a>
+        <a href="/genre.html?genre=electronic">Electronic</a>
+        <a href="/genre.html?genre=jazz">Jazz</a>
       </div>
       <div class="footer-col">
         <div class="footer-col-label">ACCOUNT</div>
@@ -630,16 +630,7 @@
 
       container.querySelectorAll('.genre-typo-item').forEach(el => {
         el.addEventListener('click', () => {
-          const genre = el.dataset.genre;
-          if (activeGenre === genre) {
-            activeGenre = null;
-            el.classList.remove('active');
-          } else {
-            container.querySelectorAll('.genre-typo-item').forEach(e => e.classList.remove('active'));
-            activeGenre = genre;
-            el.classList.add('active');
-          }
-          renderCoverGrid(allAlbums);
+          window.location.href = `/genre.html?genre=${encodeURIComponent(el.dataset.genre)}`;
         });
       });
     }
