@@ -483,9 +483,11 @@
         img.alt = name;
         img.onload = () => {
           const color = extractDominantColor(img);
-          if (color) document.getElementById('artist-name').style.color = color;
-          // photo-col 배경도 같은 색으로 은은하게
-          document.getElementById('photo-col').style.boxShadow = color ? `inset 0 0 60px ${color}22` : '';
+          if (color) {
+            document.getElementById('artist-name').style.color = color;
+            document.getElementById('artist-bio').style.borderLeftColor = color;
+            document.getElementById('photo-col').style.boxShadow = `inset 0 0 60px ${color}22`;
+          }
         };
         img.src = photo;
         const col = document.getElementById('photo-col');
