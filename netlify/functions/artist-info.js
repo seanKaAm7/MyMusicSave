@@ -83,7 +83,8 @@ async function getWikipediaBio(name) {
         if (koRes.ok) {
           const koData = await koRes.json();
           const extract = (koData.extract || '').trim();
-          if (extract.length > 50) return extract.slice(0, 800);
+          // 한국어 바이오가 충분히 길 때만 사용 (한 줄짜리 제외)
+          if (extract.length > 200) return extract.slice(0, 800);
         }
       }
     }
